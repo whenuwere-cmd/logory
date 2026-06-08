@@ -169,12 +169,14 @@ button{font-family:inherit}
 .lg-cm-title{font-size:16px;font-weight:700;color:var(--ink);margin:0;letter-spacing:-0.02em}
 .lg-cm-sub{font-size:12.5px;color:var(--ink-3);margin:4px 0 0;line-height:1.5}
 .lg-cm-x{flex:0 0 auto;width:32px;height:32px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:16px;line-height:1;cursor:pointer;display:grid;place-items:center}
-.lg-cm-list{flex:1;overflow-y:auto;padding:14px 20px;display:flex;flex-direction:column;gap:12px}
-.lg-cm-item{display:flex;flex-direction:column;gap:3px}
-.lg-cm-meta{display:flex;align-items:center;gap:7px}
-.lg-cm-nick{font-size:13px;font-weight:600;color:var(--ink)}
-.lg-cm-time{font-size:11.5px;color:var(--ink-3)}
-.lg-cm-body{font-size:14px;color:var(--ink-2);line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.lg-cm-list{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px}
+.lg-cm-item{background:#F2F5F8;border:1px solid rgba(105,117,134,.08);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.lg-cm-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lg-cm-av{flex:0 0 auto;width:32px;height:32px;border-radius:999px;display:grid;place-items:center;color:#fff;font-size:14px;font-weight:700;line-height:1;box-shadow:inset 0 0 0 1px rgba(26,27,29,.1)}
+.lg-cm-nick{font-size:13px;font-weight:500;color:var(--ink)}
+.lg-cm-dot{flex:0 0 auto;width:4px;height:4px;border-radius:50%;background:var(--ink-3)}
+.lg-cm-time{font-size:12px;color:var(--ink-3)}
+.lg-cm-body{font-size:15px;color:var(--ink);line-height:1.65;white-space:pre-wrap;word-break:break-word;letter-spacing:-0.02em}
 .lg-cm-empty{color:var(--ink-3);font-size:13.5px;text-align:center;padding:30px 0}
 .lg-cm-foot{border-top:1px solid var(--line);padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
 .lg-cm-asyou{font-size:12px;color:var(--ink-3);display:flex;align-items:center;gap:6px}
@@ -254,7 +256,7 @@ const STR = {
     empty:"검색 결과가 없어요", emptySub:"다른 키워드나 필터를 시도해 보세요.", reset:"필터 초기화",
     upload:"문의하기", uploadShort:"문의하기", goDownload:"다운로드 페이지로 이동",
     contactTitle:"문의하기", contactDesc:"로고 업로드 및 광고 문의는<br>메일을 보내주세요!", contactClose:"닫기", contactCopy:"메일 주소 복사",
-    cmFab:"💬 할말있어요", cmTitle:"💬 할말있어요", cmSub:"추가했으면 하는 기업이나 개선 의견을 자유롭게 남겨주세요.<br>로그인 없이 누구나 쓸 수 있어요.", cmPlaceholder:"의견을 입력하세요 (예: OO 기업 추가해주세요!)", cmSend:"등록", cmEmpty:"아직 의견이 없어요. 첫 의견을 남겨보세요!", cmAsYou:"이름", cmPosted:"등록됐어요!", cmFail:"등록 실패. 잠시 후 다시 시도해주세요.",
+    cmFab:"💬 할말있어요", cmTitle:"💬 할말있어요", cmSub:"추가했으면 하는 기업이나 개선 의견을 자유롭게 남겨주세요.", cmPlaceholder:"의견을 입력하세요 (예: OO 기업 추가해주세요!)", cmSend:"등록", cmEmpty:"아직 의견이 없어요. 첫 의견을 남겨보세요!", cmAsYou:"이름", cmPosted:"등록됐어요!", cmFail:"등록 실패. 잠시 후 다시 시도해주세요.",
     palette:"공식 컬러", usage:"사용가이드", related:"관련 로고",
     official:"공식 브랜드 페이지", aggregator:"외부 제공 사이트",
     useFree:"자유 사용", useRestricted:"사용 제한 / 사전 승인", useGuideline:"가이드라인 준수",
@@ -265,7 +267,7 @@ const STR = {
     empty:"No results", emptySub:"Try a different keyword or filter.", reset:"Reset filters",
     upload:"Contact", uploadShort:"Contact", goDownload:"Go to download page",
     contactTitle:"Contact", contactDesc:"For logo upload & ad inquiries,<br>please email us!", contactClose:"Close", contactCopy:"Copy email",
-    cmFab:"💬 Say hi", cmTitle:"💬 Say hi", cmSub:"Suggest companies to add or share ideas.<br>No login needed.", cmPlaceholder:"Type your message (e.g. Please add OO!)", cmSend:"Post", cmEmpty:"No comments yet. Be the first!", cmAsYou:"Name", cmPosted:"Posted!", cmFail:"Failed. Please try again.",
+    cmFab:"💬 Say hi", cmTitle:"💬 Say hi", cmSub:"Suggest companies to add or share ideas.", cmPlaceholder:"Type your message (e.g. Please add OO!)", cmSend:"Post", cmEmpty:"No comments yet. Be the first!", cmAsYou:"Name", cmPosted:"Posted!", cmFail:"Failed. Please try again.",
     palette:"Official colors", usage:"Usage", related:"Related",
     official:"Official brand page", aggregator:"Third-party source",
     useFree:"Open use", useRestricted:"Restricted / approval", useGuideline:"Follow guideline",
@@ -575,7 +577,6 @@ function filtered(){
   const isChoOnly = q.length>0 && /^[ㄱ-ㅎ]+$/.test(q); // 'ㅋㅋㅇ' 처럼 자음만 입력한 경우
   let arr = LOGOS.filter((l)=>{
     if(state.ind && l.ind!==state.ind) return false;
-    if(state.color && norm(l.colorKey)!==norm(state.color)) return false;
     if(!needle) return true;
     if(isChoOnly){ return toCho(l.ko).includes(q); }   // 초성 검색은 자음만 입력했을 때만
     const hay = `${l.ko} ${l.en}`.toLowerCase();
@@ -628,7 +629,7 @@ function gridSection(){
   if(state.page>total) state.page=total;
   const slice=arr.slice((state.page-1)*PAGE_SIZE, state.page*PAGE_SIZE);
   if(!arr.length){
-    const hasFilter=state.q||state.ind||state.color;
+    const hasFilter=state.q||state.ind;
     return `<div class="lg-empty"><div class="lg-empty-mk">∅</div><p class="lg-empty-t">${t.empty}</p><p class="lg-empty-s">${t.emptySub}</p>${hasFilter?`<button class="lg-reset" id="resetBtn">${t.reset}</button>`:""}</div>`;
   }
   const pager = total>1 ? `<div class="lg-pager">
@@ -715,6 +716,9 @@ function randNick(){
   const A=ko?NICK_ADJ_KO:NICK_ADJ_EN, N=ko?NICK_NOUN_KO:NICK_NOUN_EN;
   return A[Math.floor(Math.random()*A.length)]+" "+N[Math.floor(Math.random()*N.length)];
 }
+const AVATAR_COLORS=["#9631F5","#FF5553","#50CFBC","#4C8DFF","#FF8A3D","#2BB673","#EC4899","#6366F1","#14B8A6","#F59E0B","#8B5CF6","#EF4444","#0EA5E9","#10B981","#F472B6","#7C3AED","#FB923C","#22C55E","#E11D48","#3B82F6"];
+function avatarColor(name){ let h=0; const str=String(name||""); for(let i=0;i<str.length;i++){ h=(h*31+str.charCodeAt(i))>>>0; } return AVATAR_COLORS[h%AVATAR_COLORS.length]; }
+function firstChar(name){ const a=[...String(name||"").trim()]; return a.length?a[0]:"?"; }
 function timeAgo(iso){
   const d=new Date(iso), now=Date.now(), s=Math.floor((now-d.getTime())/1000);
   const ko=state.lang!=="en";
@@ -736,7 +740,6 @@ function openComments(){
     </div>
     <div class="lg-cm-list" id="cmList"><div class="lg-cm-empty">…</div></div>
     <div class="lg-cm-foot">
-      <div class="lg-cm-asyou">${t.cmAsYou}: <b id="cmNick">${esc(CM_NICK)}</b></div>
       <div class="lg-cm-inrow">
         <textarea class="lg-cm-ta" id="cmTa" rows="1" maxlength="500" placeholder="${t.cmPlaceholder}"></textarea>
         <button class="lg-cm-send" id="cmSend">${t.cmSend}</button>
@@ -763,9 +766,12 @@ async function loadComments(){
     const rows=await res.json();
     if(!document.getElementById("cmList")) return;
     if(!rows.length){ list.innerHTML=`<div class="lg-cm-empty">${t.cmEmpty}</div>`; return; }
-    list.innerHTML=rows.map(c=>`<div class="lg-cm-item">
-      <div class="lg-cm-meta"><span class="lg-cm-nick">${esc(c.nickname)}</span><span class="lg-cm-time">${timeAgo(c.created_at)}</span></div>
-      <div class="lg-cm-body">${esc(c.body)}</div></div>`).join("");
+    list.innerHTML=rows.map(c=>{
+      const nm=c.nickname||"";
+      return `<div class="lg-cm-item">
+      <div class="lg-cm-meta"><span class="lg-cm-av" style="background:${avatarColor(nm)}">${esc(firstChar(nm))}</span><span class="lg-cm-nick">${esc(nm)}</span><span class="lg-cm-dot"></span><span class="lg-cm-time">${timeAgo(c.created_at)}</span></div>
+      <div class="lg-cm-body">${esc(c.body)}</div></div>`;
+    }).join("");
   }catch(e){ list.innerHTML=`<div class="lg-cm-empty">${t.cmEmpty}</div>`; }
 }
 async function postComment(){
@@ -822,9 +828,6 @@ function mount(){
         <button class="lg-chip ${!state.ind?"on":""}" data-ind="">${t.all}</button>
         ${INDUSTRIES.map((i)=>`<button class="lg-chip ${state.ind===i?"on":""}" data-ind="${esc(i)}">${esc(indLabel(i))}</button>`).join("")}
       </div>
-      <div class="lg-colors" id="colors">
-        ${COLOR_CATS.map((c)=>`<button class="lg-color ${state.color===c.key?"on":""}" data-color="${c.key}" title="${state.lang==="ko"?c.ko:c.en}" style="--sw:${c.swatch}"><span class="lg-color-sw"></span></button>`).join("")}
-      </div>
     </div>
   </section>
 
@@ -871,10 +874,12 @@ function wire(){
   document.getElementById("langKo").addEventListener("click",()=>{ state.lang="ko"; mount(); });
   document.getElementById("langEn").addEventListener("click",()=>{ state.lang="en"; mount(); });
   const search=document.getElementById("searchInput");
-  search.addEventListener("input",(e)=>{ state.q=e.target.value; state.page=1; document.getElementById("clearBtn").style.display=state.q?"flex":"none"; refreshGrid(); });
+  let composing=false;
+  search.addEventListener("compositionstart",()=>{ composing=true; });
+  search.addEventListener("compositionend",(e)=>{ composing=false; state.q=e.target.value; state.page=1; document.getElementById("clearBtn").style.display=state.q?"flex":"none"; refreshGrid(); });
+  search.addEventListener("input",(e)=>{ state.q=e.target.value; document.getElementById("clearBtn").style.display=state.q?"flex":"none"; if(composing) return; state.page=1; refreshGrid(); });
   document.getElementById("clearBtn").addEventListener("click",()=>{ state.q=""; search.value=""; state.page=1; document.getElementById("clearBtn").style.display="none"; search.focus(); refreshGrid(); });
   document.getElementById("chiprow").addEventListener("click",(e)=>{ const b=e.target.closest(".lg-chip"); if(!b)return; if(b.dataset.ind===""){ state.ind=null; } else { const v=b.dataset.ind; state.ind=(state.ind===v)?null:v; } state.page=1; refreshChips(); refreshGrid(); });
-  document.getElementById("colors").addEventListener("click",(e)=>{ const b=e.target.closest(".lg-color"); if(!b)return; const v=b.dataset.color; state.color=(state.color===v)?null:v; state.page=1; refreshColors(); refreshGrid(); });
   document.getElementById("sortSel").addEventListener("change",(e)=>{ state.sort=e.target.value; state.page=1; refreshGrid(); });
   const gs=document.getElementById("gridSection");
   gs.addEventListener("click",(e)=>{
@@ -890,7 +895,7 @@ function wire(){
   });
 }
 function refreshChips(){ document.querySelectorAll("#chiprow .lg-chip").forEach((b)=>{ const v=b.dataset.ind||null; b.classList.toggle("on", state.ind===v || (!state.ind && v===null)); }); }
-function refreshColors(){ document.querySelectorAll("#colors .lg-color").forEach((b)=>b.classList.toggle("on", state.color===b.dataset.color)); }
+function refreshColors(){ /* 컬러픽커 제거됨 */ }
 function resetAll(){ state.q=""; state.ind=null; state.color=null; state.page=1; const s=document.getElementById("searchInput"); if(s)s.value=""; const c=document.getElementById("clearBtn"); if(c)c.style.display="none"; refreshChips(); refreshColors(); refreshGrid(); }
 
 document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"){ const cr=document.getElementById("commentRoot"), mr=document.getElementById("modalRoot"); if(cr&&cr.innerHTML) closeComments(); else if(mr&&mr.innerHTML) closeContact(); else if(state.active) closeDrawer(); } });
