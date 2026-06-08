@@ -154,16 +154,17 @@ button{font-family:inherit}
 .lg-pal-name{font-size:16px;font-weight:600;color:var(--ink)}
 .lg-pal-hex{margin-left:auto;font-size:15px;color:var(--ink-3)}
 .lg-usebox{background:var(--fill);border:1px solid rgba(105,117,134,.08);border-radius:8px;padding:16px;font-size:13px;color:#4B5565;line-height:1.6;letter-spacing:-0.26px}
+.lg-d-disc{font-size:12px;color:var(--ink-3);line-height:1.7;background:var(--fill);border:1px solid rgba(105,117,134,.08);border-radius:8px;padding:14px 16px;margin-top:8px}
 .lg-cta{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:52px;background:var(--ink);color:#fff;border:0;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;text-decoration:none;transition:.15s}
 .lg-cta:hover{filter:brightness(1.1)}
 .lg-cta-top{display:inline-flex;align-items:center;gap:4px;height:38px;padding:0 12px;background:var(--ink);color:#fff;border:0;border-radius:12px;font-size:13px;font-weight:500;letter-spacing:-0.26px;cursor:pointer;text-decoration:none;transition:.16s ease;white-space:nowrap}
-.lg-d-actions{display:flex;align-items:center;gap:8px}
+.lg-d-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .lg-cta-ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
 .lg-cta-ghost:hover{background:#F9FAFB}
 .lg-cta-top:hover{filter:brightness(1.04);transform:translateY(-1px);box-shadow:0 6px 14px -10px rgba(0,0,0,.3)}
 .lg-rel{background:var(--fill);border:1px solid var(--line);border-radius:12px;padding:16px}
 .lg-rel-row{display:flex;gap:8px}
-.lg-rel-item{flex:1 1 0;min-width:0;border:1px solid var(--line);border-radius:12px;height:72px;display:grid;place-items:center;padding:0 12px;cursor:pointer;overflow:hidden;background:linear-gradient(180deg, color-mix(in srgb, var(--brand) 10%, #fff) 0%, #fafafa 49%);transition:.12s}
+.lg-rel-item{flex:1 1 0;min-width:0;border:1px solid var(--line);border-radius:12px;height:72px;display:grid;place-items:center;padding:0 12px;cursor:pointer;overflow:hidden;background:#fff;transition:.12s}
 .lg-rel-item:hover{transform:translateY(-2px)}
 .lg-rel-item img{max-width:90%;max-height:36px;object-fit:contain}
 .lg-rel-item .lg-wordmark{font-size:13px}
@@ -286,30 +287,64 @@ function svgUrlFor(l){
   if(l.file && /\.svg$/i.test(l.file)) return storageFile(l.file);
   return storageFile(l.id + ".svg");
 }
+function pngUrlFor(l){
+  if(l.img && /\.png(\?|$)/i.test(l.img)) return l.img;
+  if(l.file && /\.png$/i.test(l.file)) return storageFile(l.file);
+  return storageFile(l.id + ".png");
+}
+function svgTextToPng(svgText){
+  return new Promise(function(res,rej){
+    let w=512,h=512;
+    const m=svgText.match(/viewBox\s*=\s*"([\d.\s,-]+)"/i);
+    if(m){ const p=m[1].split(/[\s,]+/).map(Number); if(p.length===4 && p[2]>0 && p[3]>0){ const ar=p[2]/p[3]; h=512; w=Math.round(512*ar); } }
+    const u=URL.createObjectURL(new Blob([svgText],{type:"image/svg+xml;charset=utf-8"}));
+    const im=new Image();
+    im.onload=function(){ try{ const c=document.createElement("canvas"); c.width=w; c.height=h; c.getContext("2d").drawImage(im,0,0,w,h); URL.revokeObjectURL(u); c.toBlob(function(b){ b?res(b):rej(0); },"image/png"); }catch(e){ URL.revokeObjectURL(u); rej(e); } };
+    im.onerror=function(){ URL.revokeObjectURL(u); rej(0); };
+    im.src=u;
+  });
+}
+function rasterToPng(blob){
+  return new Promise(function(res,rej){
+    const u=URL.createObjectURL(blob); const im=new Image();
+    im.onload=function(){ try{ const c=document.createElement("canvas"); c.width=im.naturalWidth||512; c.height=im.naturalHeight||512; c.getContext("2d").drawImage(im,0,0); URL.revokeObjectURL(u); c.toBlob(function(b){ b?res(b):rej(0); },"image/png"); }catch(e){ URL.revokeObjectURL(u); rej(e); } };
+    im.onerror=function(){ URL.revokeObjectURL(u); rej(0); };
+    im.src=u;
+  });
+}
+async function copyPng(store){
+  try{
+    let png=store.pngBlob||store.pngFromSvg;
+    if(png && png.type!=="image/png"){ png=await rasterToPng(png); }
+    if(!png) throw 0;
+    await navigator.clipboard.write([new ClipboardItem({"image/png":png})]);
+    toast(STR[state.lang].pngCopied);
+  }catch(e){ toast(STR[state.lang].copyFail); }
+}
 
 /* ===== 다국어 ===== */
 const STR = {
   ko: { title:"A new logo library 🍞", search:"기업명으로 검색 (예: 토스, 네이버, ㅋㅋㅇ)", all:"전체",
     sortPopular:"인기순", sortNewest:"최신순", sortName:"이름순", count:(n)=>`${n}개의 로고`,
     empty:"검색 결과가 없어요", emptySub:"다른 키워드나 필터를 시도해 보세요.", reset:"필터 초기화",
-    upload:"문의하기", uploadShort:"문의하기", goDownload:"다운로드 페이지로 이동",
+    upload:"문의하기", uploadShort:"문의하기", goDownload:"기업 페이지로 이동",
     contactTitle:"문의하기", contactDesc:"로고 업로드 및 광고 문의는<br>메일을 보내주세요!", contactClose:"닫기", contactCopy:"메일 주소 복사",
     cmFab:"💬 할말있어요", cmTitle:"💬 할말있어요", cmSub:"추가했으면 하는 기업이나 개선 의견을 자유롭게 남겨주세요.", cmPlaceholder:"의견을 입력하세요 (예: OO 기업 추가해주세요!)", cmSend:"등록", cmEmpty:"아직 의견이 없어요. 첫 의견을 남겨보세요!", cmAsYou:"이름", cmPosted:"등록됐어요!", cmFail:"등록 실패. 잠시 후 다시 시도해주세요.",
     palette:"공식 컬러", usage:"사용가이드", related:"관련 로고",
     official:"공식 브랜드 페이지", aggregator:"외부 제공 사이트",
     useFree:"자유 사용", useRestricted:"사용 제한 / 사전 승인", useGuideline:"가이드라인 준수",
-    copied:"복사됨", share:"공유하기", linkCopied:"링크가 복사됐어요", copySvg:"SVG 복사", svgCopied:"SVG가 복사됐어요", seed:"샘플 데이터 · 링크는 출시 전 검증 필요",
+    copied:"복사됨", share:"공유하기", linkCopied:"링크가 복사됐어요", copySvg:"SVG 복사", svgCopied:"SVG가 복사됐어요", copyPng:"PNG 복사", pngCopied:"PNG가 복사됐어요", copyFail:"복사 실패", usageDisc:"모든 로고와 상표의 저작권 및 권리는 해당 기업에 있습니다. 로고리는 정보 제공 목적의 비공식 아카이브로, 로고 사용으로 발생하는 어떠한 문제에 대해서도 법적 책임을 지지 않습니다. 사용 전 각 기업의 공식 가이드라인을 확인해 주세요.", seed:"샘플 데이터 · 링크는 출시 전 검증 필요",
     rights:"모든 로고의 저작권은 모두 각 로고의 저작권자에게 있습니다.\n로고 사용에 대한 라이센스 문의는 저작권자에게 문의해주세요." },
   en: { title:"A new logo library 🍞", search:"Search by company (e.g. Toss, naver)", all:"All",
     sortPopular:"Popular", sortNewest:"Newest", sortName:"Name", count:(n)=>`${n} logos`,
     empty:"No results", emptySub:"Try a different keyword or filter.", reset:"Reset filters",
-    upload:"Contact", uploadShort:"Contact", goDownload:"Go to download page",
+    upload:"Contact", uploadShort:"Contact", goDownload:"Go to company page",
     contactTitle:"Contact", contactDesc:"For logo upload & ad inquiries,<br>please email us!", contactClose:"Close", contactCopy:"Copy email",
     cmFab:"💬 Say hi", cmTitle:"💬 Say hi", cmSub:"Suggest companies to add or share ideas.", cmPlaceholder:"Type your message (e.g. Please add OO!)", cmSend:"Post", cmEmpty:"No comments yet. Be the first!", cmAsYou:"Name", cmPosted:"Posted!", cmFail:"Failed. Please try again.",
     palette:"Official colors", usage:"Usage", related:"Related",
     official:"Official brand page", aggregator:"Third-party source",
     useFree:"Open use", useRestricted:"Restricted / approval", useGuideline:"Follow guideline",
-    copied:"Copied", share:"Share", linkCopied:"Link copied!", copySvg:"Copy SVG", svgCopied:"SVG copied!", seed:"Sample data · verify links before launch",
+    copied:"Copied", share:"Share", linkCopied:"Link copied!", copySvg:"Copy SVG", svgCopied:"SVG copied!", copyPng:"Copy PNG", pngCopied:"PNG copied!", copyFail:"Copy failed", usageDisc:"All logos and trademarks are the property of their respective owners. Logory is an unofficial archive provided for reference only and bears no legal responsibility for any use of these logos. Please review each company\u0027s official guidelines before use.", seed:"Sample data · verify links before launch",
     rights:"All logo copyrights belong to their respective owners.\nFor licensing, please contact the copyright holder." },
 };
 const USAGE_KEY = { free:"useFree", restricted:"useRestricted", guideline:"useGuideline" };
@@ -724,7 +759,7 @@ function drawerHTML(l){
   const srcLabel = l.src==="official" ? t.official : t.aggregator;
   const useLabel = t[USAGE_KEY[l.usage]];
   return `<div class="lg-overlay" id="overlay"><aside class="lg-drawer" id="drawer">
-    <div class="lg-d-top"><button class="lg-close" id="closeBtn" aria-label="close">✕</button><div class="lg-d-actions"><button class="lg-cta-top lg-cta-ghost" id="copySvgBtn" style="display:none">${t.copySvg}</button><a class="lg-cta-top" href="${l.url}" target="_blank" rel="noopener noreferrer">${t.goDownload} <span style="font-size:14px">↗</span></a></div></div>
+    <div class="lg-d-top"><button class="lg-close" id="closeBtn" aria-label="close">✕</button><div class="lg-d-actions"><button class="lg-cta-top lg-cta-ghost" id="copySvgBtn" style="display:none">${t.copySvg}</button><button class="lg-cta-top lg-cta-ghost" id="copyPngBtn" style="display:none">${t.copyPng}</button><a class="lg-cta-top" href="${l.url}" target="_blank" rel="noopener noreferrer">${t.goDownload} <span style="font-size:14px">↗</span></a></div></div>
     <div class="lg-d-logo" style="--brand:${brandOf(l)}">${logoMarkup(l,"drawer")}</div>
     <div class="lg-d-head">
       <span class="lg-d-chip">${esc(indLabel(l.ind))}</span>
@@ -737,7 +772,7 @@ function drawerHTML(l){
     </div>` : ""}
     <div class="lg-d-section">
       <p class="lg-d-label">${t.usage}</p>
-      <div class="lg-usebox">${srcLabel} ${useLabel}${l.note?`<br>${esc(l.note)}`:""}</div>
+      <p class="lg-d-disc">${t.usageDisc}</p>
     </div>
     ${related.length?`<div class="lg-d-section"><p class="lg-d-label">${t.related}</p><div class="lg-rel"><div class="lg-rel-row">${related.map((r)=>`<button class="lg-rel-item" data-id="${r.id}" title="${esc(r.ko)}" style="--brand:${brandOf(r)}">${logoMarkup(r,"rel")}</button>`).join("")}</div></div></div>`:""}
   </aside></div>`;
@@ -750,16 +785,31 @@ function openDrawer(id){
   document.getElementById("closeBtn").addEventListener("click",closeDrawer);
   root.querySelectorAll(".lg-pal-item").forEach((b)=>b.addEventListener("click",()=>copyText(b.dataset.hex)));
   root.querySelectorAll(".lg-rel-item").forEach((b)=>b.addEventListener("click",()=>{ root.scrollTop=0; openDrawer(b.dataset.id); }));
-  // SVG 복사 버튼: svg가 실제로 있으면만 노출
+  // SVG / PNG 복사 버튼: 해당 형식이 실제로 있을 때만 노출
   (function(){
-    const btn=document.getElementById("copySvgBtn"); if(!btn) return;
-    const url=svgUrlFor(state.active); if(!url) return;
-    fetch(url,{cache:"no-store"}).then(function(r){ if(!r.ok) throw 0; return r.text(); }).then(function(txt){
-      if(txt && txt.indexOf("<svg")!==-1){
-        btn.style.display="";
-        btn.onclick=function(){ try{ navigator.clipboard && navigator.clipboard.writeText(txt); }catch(e){} toast(STR[state.lang].svgCopied); };
-      }
-    }).catch(function(){});
+    const l=state.active;
+    const svgBtn=document.getElementById("copySvgBtn");
+    const pngBtn=document.getElementById("copyPngBtn");
+    if(svgBtn) svgBtn.style.display="none";
+    if(pngBtn) pngBtn.style.display="none";
+    const store={svg:null, pngBlob:null, pngFromSvg:null};
+    const showPng=function(){ if(pngBtn && (store.pngBlob||store.pngFromSvg)){ pngBtn.style.display=""; pngBtn.onclick=function(){ copyPng(store); }; } };
+    const svgU=svgUrlFor(l);
+    if(svgU){
+      fetch(svgU,{cache:"no-store"}).then(function(r){ if(!r.ok) throw 0; return r.text(); }).then(function(txt){
+        if(txt && txt.indexOf("<svg")!==-1){
+          store.svg=txt;
+          if(svgBtn){ svgBtn.style.display=""; svgBtn.onclick=function(){ try{ navigator.clipboard && navigator.clipboard.writeText(store.svg); }catch(e){} toast(STR[state.lang].svgCopied); }; }
+          svgTextToPng(txt).then(function(b){ store.pngFromSvg=b; showPng(); }).catch(function(){});
+        }
+      }).catch(function(){});
+    }
+    const pngU=pngUrlFor(l);
+    if(pngU){
+      fetch(pngU,{cache:"no-store"}).then(function(r){ if(!r.ok) throw 0; return r.blob(); }).then(function(blob){
+        if(blob && blob.type.indexOf("image/")===0 && blob.type.indexOf("svg")===-1){ store.pngBlob=blob; showPng(); }
+      }).catch(function(){});
+    }
   })();
   document.getElementById("drawer").scrollTop=0;
 }
