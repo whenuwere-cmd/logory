@@ -157,6 +157,9 @@ button{font-family:inherit}
 .lg-cta{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:52px;background:var(--ink);color:#fff;border:0;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;text-decoration:none;transition:.15s}
 .lg-cta:hover{filter:brightness(1.1)}
 .lg-cta-top{display:inline-flex;align-items:center;gap:4px;height:38px;padding:0 12px;background:var(--ink);color:#fff;border:0;border-radius:12px;font-size:13px;font-weight:500;letter-spacing:-0.26px;cursor:pointer;text-decoration:none;transition:.16s ease;white-space:nowrap}
+.lg-d-actions{display:flex;align-items:center;gap:8px}
+.lg-cta-ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.lg-cta-ghost:hover{background:#F9FAFB}
 .lg-cta-top:hover{filter:brightness(1.04);transform:translateY(-1px);box-shadow:0 6px 14px -10px rgba(0,0,0,.3)}
 .lg-rel{background:var(--fill);border:1px solid var(--line);border-radius:12px;padding:16px}
 .lg-rel-row{display:flex;gap:8px}
@@ -278,6 +281,11 @@ const sources = (logo) => [
   storageFile(logo.id + ".png"),               // 또는 {id}.png
   brandfetchUrl(DOMAINS[logo.id])              // 마지막으로 Brandfetch(키 설정 시)
 ].filter(Boolean);
+function svgUrlFor(l){
+  if(l.img && /\.svg(\?|$)/i.test(l.img)) return l.img;
+  if(l.file && /\.svg$/i.test(l.file)) return storageFile(l.file);
+  return storageFile(l.id + ".svg");
+}
 
 /* ===== 다국어 ===== */
 const STR = {
@@ -290,7 +298,7 @@ const STR = {
     palette:"공식 컬러", usage:"사용가이드", related:"관련 로고",
     official:"공식 브랜드 페이지", aggregator:"외부 제공 사이트",
     useFree:"자유 사용", useRestricted:"사용 제한 / 사전 승인", useGuideline:"가이드라인 준수",
-    copied:"복사됨", share:"공유하기", linkCopied:"링크가 복사됐어요", seed:"샘플 데이터 · 링크는 출시 전 검증 필요",
+    copied:"복사됨", share:"공유하기", linkCopied:"링크가 복사됐어요", copySvg:"SVG 복사", svgCopied:"SVG가 복사됐어요", seed:"샘플 데이터 · 링크는 출시 전 검증 필요",
     rights:"모든 로고의 저작권은 모두 각 로고의 저작권자에게 있습니다.\n로고 사용에 대한 라이센스 문의는 저작권자에게 문의해주세요." },
   en: { title:"A new logo library 🍞", search:"Search by company (e.g. Toss, naver)", all:"All",
     sortPopular:"Popular", sortNewest:"Newest", sortName:"Name", count:(n)=>`${n} logos`,
@@ -301,7 +309,7 @@ const STR = {
     palette:"Official colors", usage:"Usage", related:"Related",
     official:"Official brand page", aggregator:"Third-party source",
     useFree:"Open use", useRestricted:"Restricted / approval", useGuideline:"Follow guideline",
-    copied:"Copied", share:"Share", linkCopied:"Link copied!", seed:"Sample data · verify links before launch",
+    copied:"Copied", share:"Share", linkCopied:"Link copied!", copySvg:"Copy SVG", svgCopied:"SVG copied!", seed:"Sample data · verify links before launch",
     rights:"All logo copyrights belong to their respective owners.\nFor licensing, please contact the copyright holder." },
 };
 const USAGE_KEY = { free:"useFree", restricted:"useRestricted", guideline:"useGuideline" };
@@ -716,7 +724,7 @@ function drawerHTML(l){
   const srcLabel = l.src==="official" ? t.official : t.aggregator;
   const useLabel = t[USAGE_KEY[l.usage]];
   return `<div class="lg-overlay" id="overlay"><aside class="lg-drawer" id="drawer">
-    <div class="lg-d-top"><button class="lg-close" id="closeBtn" aria-label="close">✕</button><a class="lg-cta-top" href="${l.url}" target="_blank" rel="noopener noreferrer">${t.goDownload} <span style="font-size:14px">↗</span></a></div>
+    <div class="lg-d-top"><button class="lg-close" id="closeBtn" aria-label="close">✕</button><div class="lg-d-actions"><button class="lg-cta-top lg-cta-ghost" id="copySvgBtn" style="display:none">${t.copySvg}</button><a class="lg-cta-top" href="${l.url}" target="_blank" rel="noopener noreferrer">${t.goDownload} <span style="font-size:14px">↗</span></a></div></div>
     <div class="lg-d-logo" style="--brand:${brandOf(l)}">${logoMarkup(l,"drawer")}</div>
     <div class="lg-d-head">
       <span class="lg-d-chip">${esc(indLabel(l.ind))}</span>
@@ -742,6 +750,17 @@ function openDrawer(id){
   document.getElementById("closeBtn").addEventListener("click",closeDrawer);
   root.querySelectorAll(".lg-pal-item").forEach((b)=>b.addEventListener("click",()=>copyText(b.dataset.hex)));
   root.querySelectorAll(".lg-rel-item").forEach((b)=>b.addEventListener("click",()=>{ root.scrollTop=0; openDrawer(b.dataset.id); }));
+  // SVG 복사 버튼: svg가 실제로 있으면만 노출
+  (function(){
+    const btn=document.getElementById("copySvgBtn"); if(!btn) return;
+    const url=svgUrlFor(state.active); if(!url) return;
+    fetch(url,{cache:"no-store"}).then(function(r){ if(!r.ok) throw 0; return r.text(); }).then(function(txt){
+      if(txt && txt.indexOf("<svg")!==-1){
+        btn.style.display="";
+        btn.onclick=function(){ try{ navigator.clipboard && navigator.clipboard.writeText(txt); }catch(e){} toast(STR[state.lang].svgCopied); };
+      }
+    }).catch(function(){});
+  })();
   document.getElementById("drawer").scrollTop=0;
 }
 function closeDrawer(){ state.active=null; document.getElementById("drawerRoot").innerHTML=""; }
