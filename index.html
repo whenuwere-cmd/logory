@@ -742,9 +742,9 @@ function rowToLogo(r){
 }
 async function loadCompanies(){
   try{
-    const headers = { "Accept":"application/json" };
+    const headers = { "Accept":"application/json", "Cache-Control":"no-cache" };
     if(SUPABASE_ANON_KEY){ headers.apikey = SUPABASE_ANON_KEY; headers.Authorization = "Bearer "+SUPABASE_ANON_KEY; }
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/companies?select=*&order=pop.desc&_=${Date.now()}`, { headers, cache: "no-store" });
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/companies?select=*&order=pop.desc`, { headers, cache: "no-store" });
     if(!res.ok) throw new Error("HTTP "+res.status);
     const rows = await res.json();
     if(Array.isArray(rows) && rows.length){
