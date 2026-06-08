@@ -269,8 +269,15 @@ const SHARE_URL = "https://logory.pages.dev/";
 const brandfetchUrl = (dom) => dom && BRANDFETCH_CLIENT_ID
   ? `https://cdn.brandfetch.io/${dom}/w/400/h/120/logo?c=${BRANDFETCH_CLIENT_ID}` : null;
 const isStorageReady = SUPABASE_URL.includes(".supabase.co") && !SUPABASE_URL.includes("YOUR_PROJECT");
-const storageUrl = (logo) => isStorageReady ? `${SUPABASE_URL}/storage/v1/object/public/${LOGO_BUCKET}/${logo.file || logo.id + "." + DEFAULT_EXT}` : null;
-const sources = (logo) => [logo.img, storageUrl(logo), brandfetchUrl(DOMAINS[logo.id])].filter(Boolean);
+const storageFile = (name) => isStorageReady ? `${SUPABASE_URL}/storage/v1/object/public/${LOGO_BUCKET}/${name}` : null;
+const storageUrl = (logo) => storageFile(logo.file || (logo.id + "." + DEFAULT_EXT));
+const sources = (logo) => [
+  logo.img,
+  logo.file ? storageFile(logo.file) : null,   // 파일명 직접 지정 시 우선
+  storageFile(logo.id + ".svg"),               // logos 버킷의 {id}.svg
+  storageFile(logo.id + ".png"),               // 또는 {id}.png
+  brandfetchUrl(DOMAINS[logo.id])              // 마지막으로 Brandfetch(키 설정 시)
+].filter(Boolean);
 
 /* ===== 다국어 ===== */
 const STR = {
@@ -716,10 +723,10 @@ function drawerHTML(l){
       <div class="lg-d-name"><h2 class="lg-d-ko">${esc(l.ko)}</h2><p class="lg-d-en">${esc(l.en)}</p></div>
       <p class="lg-d-desc">${esc(l.desc)}${l.year?` · est. ${l.year}`:""}</p>
     </div>
-    <div class="lg-d-section">
+    ${(l.colors && l.colors.length) ? `<div class="lg-d-section">
       <p class="lg-d-label">${t.palette}</p>
       <div class="lg-pal">${l.colors.map((c)=>`<button class="lg-pal-item" data-hex="${c.h}"><span class="lg-pal-sw" style="background:${c.h}"></span><span class="lg-pal-name">${esc(c.n)}</span><span class="lg-pal-hex">${c.h}</span></button>`).join("")}</div>
-    </div>
+    </div>` : ""}
     <div class="lg-d-section">
       <p class="lg-d-label">${t.usage}</p>
       <div class="lg-usebox">${srcLabel} ${useLabel}${l.note?`<br>${esc(l.note)}`:""}</div>
