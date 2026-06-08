@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Logory — A new logo library</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+
+html,body{margin:0;padding:0}
+.lg-root{
+  /* 컬러: 기존에 잡아둔 톤 유지 */
+  --bg-top:#F7F6F3; --bg-bottom:#FFFFFF;
+  --surface:#ffffff; --fill:#F9FAFB; --fill-line:#ECEAE4;
+  --ink:#15171A; --ink-2:#5B6166; --ink-3:#9AA0A6;
+  --line:#E7E5DF; --accent:#1B4DFF;
+  --sans:'Pretendard','Pretendard Variable',-apple-system,BlinkMacSystemFont,sans-serif;
+  --display:'Helvetica Neue',Helvetica,Arial,'Pretendard',sans-serif;
+  --side:24px; /* 데스크톱 좌우 여백 */
+  background:#F9FAFB;
+  color:var(--ink); font-family:var(--sans); min-height:100vh;
+  -webkit-font-smoothing:antialiased; letter-spacing:-0.01em;
+}
+*{box-sizing:border-box}
+.lg-wrap{max-width:1200px;margin:0 auto;padding-left:var(--side);padding-right:var(--side)}
+button{font-family:inherit}
+
+/* ===== GNB ===== */
+.lg-gnb{position:sticky;top:0;z-index:40;backdrop-filter:blur(8px);background:rgba(255,255,255,.7);border-bottom:1px solid rgba(105,117,134,.08)}
+.lg-gnb-in{display:flex;align-items:center;justify-content:space-between;height:60px;gap:10px}
+.lg-brand{display:flex;align-items:center;gap:8px;background:none;border:0;cursor:pointer;padding:0}
+.lg-mark{width:18px;height:18px;flex:none}
+.lg-logotype{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:1.1px;color:var(--ink)}
+.lg-gnb-right{display:flex;align-items:center;gap:8px}
+.lg-tabs{display:flex;align-items:center;gap:4px;background:#F9FAFB;border:1px solid var(--line);border-radius:14px;padding:4px}
+.lg-tab{border:0;background:none;cursor:pointer;font-size:13px;font-weight:500;color:var(--ink-2);padding:6px 14px;border-radius:12px}
+.lg-tab.on{background:var(--surface);border:1px solid var(--line);box-shadow:0 1px 1px rgba(0,0,0,.04),0 2px 2px rgba(0,0,0,.04)}
+.lg-upload{display:flex;align-items:center;justify-content:center;height:38px;padding:0 14px;border:0;border-radius:12px;background:var(--ink);color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.lg-upload:hover{filter:brightness(1.04);transform:translateY(-1px);box-shadow:0 6px 14px -10px rgba(0,0,0,.28)}
+.lg-upload .short{display:none}
+
+/* ===== Hero ===== */
+.lg-hero{padding:56px var(--side) 28px;text-align:center}
+.lg-hero-title{font-family:var(--display);font-weight:500;font-size:20px;color:var(--ink);margin:0}
+.lg-search{position:relative;display:flex;align-items:center;gap:8px;width:360px;max-width:100%;margin:24px auto 0;background:var(--surface);border:1px solid var(--line);border-radius:8px;height:46px;padding:0 14px;transition:border-color .15s,box-shadow .15s}
+.lg-search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(27,77,255,.12)}
+.lg-search-ic{width:20px;height:20px;flex:none;color:var(--ink)}
+.lg-search input{flex:1;min-width:0;border:0;outline:0;background:none;font-size:14px;font-family:var(--sans);color:var(--ink);letter-spacing:-0.3px}
+.lg-search input::placeholder{color:var(--ink-3)}
+.lg-search-clear{border:0;background:#EFEDE7;color:var(--ink-2);width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:15px;line-height:1;flex:none}
+
+/* ===== Filters ===== */
+.lg-filters{display:flex;flex-direction:column;align-items:center;gap:20px;margin-top:20px}
+.lg-chiprow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:100%}
+.lg-chip{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:.13s}
+.lg-chip:hover{border-color:#cdcbc4}
+.lg-chip.on{border-color:var(--ink)}
+.lg-colors{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+.lg-color{display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px;cursor:pointer;transition:.13s}
+.lg-color-sw{width:20px;height:20px;border-radius:50%;background:var(--sw);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.lg-color.on{border-color:var(--ink)}
+.lg-color.on .lg-color-sw{box-shadow:inset 0 0 0 1px rgba(0,0,0,.12),0 0 0 3px rgba(0,0,0,.06)}
+
+/* ===== Count + Sort ===== */
+.lg-body{padding-top:32px;padding-bottom:0}
+.lg-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin-bottom:24px}
+.lg-count{font-size:13px;color:var(--ink-3);letter-spacing:-0.26px}
+.lg-count b{color:var(--ink);font-weight:600}
+.lg-sort{display:flex;align-items:center;gap:6px;width:110px;height:38px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:0 12px;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer}
+.lg-sort select{flex:1;border:0;background:none;outline:0;font:inherit;color:inherit;cursor:pointer;-webkit-appearance:none;appearance:none}
+
+/* ===== Grid ===== */
+.lg-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.lg-card{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;cursor:pointer;display:flex;flex-direction:column;gap:16px;transition:.16s ease;font-family:var(--sans)}
+.lg-card:hover{transform:translateY(-3px);box-shadow:0 16px 32px -22px rgba(0,0,0,.45);border-color:#dcdad3}
+.lg-cardchip{align-self:flex-start;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 8px;font-size:12px;font-weight:500;letter-spacing:-0.24px}
+.lg-card-logo{height:120px;border-radius:16px;display:grid;place-items:center;padding:20px 24px;border:1px solid var(--line);overflow:hidden;background:
+  linear-gradient(180deg, color-mix(in srgb, var(--brand) 9%, #fff) 0%, #fafafa 49%)}
+.lg-wordmark{font-weight:800;font-size:19px;letter-spacing:-0.03em;color:var(--brand);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.lg-img{max-width:90%;max-height:64px;object-fit:contain;display:block}
+.lg-card-meta{display:flex;flex-direction:column;gap:4px}
+.lg-card-ko{font-weight:600;font-size:16px;letter-spacing:-0.48px;color:var(--ink)}
+.lg-card-en{font-size:15px;font-weight:500;color:var(--ink-3)}
+
+/* empty */
+.lg-empty{text-align:center;padding:80px 0}
+.lg-empty-mk{font-size:46px;color:#D6D4CD}
+.lg-empty-t{font-weight:700;font-size:20px;margin:10px 0 4px}
+.lg-empty-s{color:var(--ink-2);font-size:14px;margin:0}
+.lg-reset{margin-top:18px;border:0;background:var(--ink);color:#fff;border-radius:10px;padding:10px 18px;font-weight:600;cursor:pointer}
+
+/* ===== Pagination ===== */
+.lg-pager{display:flex;gap:12px;align-items:center;justify-content:center;margin-top:40px}
+.lg-pg-btn{width:34px;height:34px;border-radius:1000px;border:1px solid #F3F4F6;background:var(--surface);cursor:pointer;display:grid;place-items:center;color:var(--ink);filter:drop-shadow(0 1px 1px rgba(0,0,0,.04)) drop-shadow(0 2px 2px rgba(0,0,0,.04))}
+.lg-pg-btn:disabled{opacity:.35;cursor:default;filter:none}
+.lg-pg-num{min-width:36px;height:36px;border:0;background:none;cursor:pointer;border-radius:6px;font-size:15px;font-weight:500;color:var(--ink-3)}
+.lg-pg-num.on{color:var(--ink)}
+.lg-pg-dots{min-width:24px;text-align:center;color:var(--ink-3);font-size:15px}
+
+/* ===== Footer ===== */
+.lg-foot{background:var(--ink);margin-top:96px}
+.lg-foot-in{max-width:1200px;margin:0 auto;padding:64px var(--side);display:flex;justify-content:space-between;gap:40px;flex-wrap:wrap}
+.lg-foot-l{display:flex;flex-direction:column;gap:34px}
+.lg-foot-brand{display:flex;align-items:center;gap:8px}
+.lg-foot-logotype{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:1.1px;color:#fff}
+.lg-foot-copy{font-size:13px;color:#fff;opacity:.9;line-height:1.6}
+.lg-foot-r{display:flex;flex-direction:column;gap:18px;color:var(--ink-3);font-size:13px;line-height:1.6}
+.lg-foot-note{color:#9CA3AF}
+.lg-foot-links{display:flex;gap:16px}
+.lg-foot-links span{color:#9CA3AF;cursor:pointer}
+
+/* ===== Drawer (로고 상세) ===== */
+.lg-overlay{position:fixed;inset:0;z-index:60;background:rgba(20,21,24,.42);backdrop-filter:blur(2px);display:flex;justify-content:flex-end;animation:fade .18s ease}
+.lg-drawer{position:relative;width:500px;max-width:100%;height:100%;background:var(--surface);overflow-y:auto;padding:36px 24px;animation:slide .26s cubic-bezier(.22,1,.36,1);display:flex;flex-direction:column;gap:24px}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes slide{from{transform:translateX(40px);opacity:.4}to{transform:translateX(0);opacity:1}}
+@keyframes sheet{from{transform:translateY(60px);opacity:.4}to{transform:translateY(0);opacity:1}}
+.lg-d-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.lg-close{width:34px;height:34px;border-radius:1000px;border:1px solid var(--line);background:var(--surface);cursor:pointer;display:grid;place-items:center;color:var(--ink);filter:drop-shadow(0 1px 1px rgba(0,0,0,.04)) drop-shadow(0 2px 2px rgba(0,0,0,.04))}
+.lg-d-logo{flex:0 0 180px;height:180px;border-radius:16px;border:1px solid var(--line);display:grid;place-items:center;padding:0 40px;overflow:hidden;background:
+  linear-gradient(180deg, color-mix(in srgb, var(--brand) 12%, #fff) 0%, #fafafa 49%)}
+.lg-d-img{max-width:78%;max-height:120px;object-fit:contain;display:block}
+.lg-d-logo .lg-wordmark{font-size:30px}
+.lg-d-head{display:flex;flex-direction:column;gap:8px}
+.lg-d-chip{align-self:flex-start;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 8px;font-size:12px;font-weight:500}
+.lg-d-name{display:flex;flex-direction:column;gap:4px}
+.lg-d-ko{font-size:23px;font-weight:600;letter-spacing:-0.69px;color:var(--ink);margin:0}
+.lg-d-en{font-size:15px;font-weight:500;color:var(--ink-3);margin:0}
+.lg-d-desc{font-size:15px;font-weight:500;color:var(--ink-3);margin:0;line-height:1.6}
+.lg-d-section{display:flex;flex-direction:column;gap:8px}
+.lg-d-label{font-size:13px;font-weight:500;color:var(--ink);letter-spacing:-0.26px;margin:0}
+.lg-pal{background:var(--fill);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.lg-pal-item{display:flex;align-items:center;gap:16px;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;cursor:pointer;text-align:left;transition:.12s}
+.lg-pal-item:hover{border-color:#d3d1ca}
+.lg-pal-sw{width:24px;height:24px;border-radius:4px;box-shadow:inset 0 0 0 1px rgba(26,27,29,.1);flex:none}
+.lg-pal-name{font-size:16px;font-weight:600;color:var(--ink)}
+.lg-pal-hex{margin-left:auto;font-size:15px;color:var(--ink-3)}
+.lg-usebox{background:var(--fill);border:1px solid rgba(105,117,134,.08);border-radius:8px;padding:16px;font-size:13px;color:#4B5565;line-height:1.6;letter-spacing:-0.26px}
+.lg-cta{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:52px;background:var(--ink);color:#fff;border:0;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;text-decoration:none;transition:.15s}
+.lg-cta:hover{filter:brightness(1.1)}
+.lg-cta-top{display:inline-flex;align-items:center;gap:4px;height:38px;padding:0 12px;background:var(--ink);color:#fff;border:0;border-radius:12px;font-size:13px;font-weight:500;letter-spacing:-0.26px;cursor:pointer;text-decoration:none;transition:.16s ease;white-space:nowrap}
+.lg-cta-top:hover{filter:brightness(1.04);transform:translateY(-1px);box-shadow:0 6px 14px -10px rgba(0,0,0,.3)}
+.lg-rel{background:var(--fill);border:1px solid var(--line);border-radius:12px;padding:16px}
+.lg-rel-row{display:flex;gap:8px}
+.lg-rel-item{flex:1 1 0;min-width:0;border:1px solid var(--line);border-radius:12px;height:72px;display:grid;place-items:center;padding:0 12px;cursor:pointer;overflow:hidden;background:linear-gradient(180deg, color-mix(in srgb, var(--brand) 10%, #fff) 0%, #fafafa 49%);transition:.12s}
+.lg-rel-item:hover{transform:translateY(-2px)}
+.lg-rel-item img{max-width:90%;max-height:36px;object-fit:contain}
+.lg-rel-item .lg-wordmark{font-size:13px}
+
+/* toast */
+.lg-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:90;background:var(--ink);color:#fff;font-size:13px;font-weight:600;padding:10px 18px;border-radius:999px;animation:fade .15s ease}
+
+.lg-seed{text-align:center;font-size:11px;color:#B6B4AD;margin-top:28px}
+
+/* ===== Responsive ===== */
+@media(max-width:1024px){ .lg-grid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media(max-width:760px){
+  .lg-root{--side:16px}            /* 모바일 좌우 마진 16px */
+  .lg-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .lg-hero{padding:36px var(--side) 22px}
+  .lg-card{padding:14px;gap:12px}
+  .lg-card-logo{height:96px;padding:14px}
+  .lg-wordmark{font-size:16px}
+  .lg-img{max-height:48px}
+  .lg-logotype,.lg-foot-logotype{font-size:19px}
+  .lg-upload{padding:0 12px;font-size:12px;height:34px}
+  .lg-upload .full{display:none}
+  .lg-upload .short{display:inline}
+  .lg-tab{padding:5px 10px}
+  .lg-chiprow{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;width:100%;padding-bottom:4px;-ms-overflow-style:none;scrollbar-width:none}
+  .lg-chiprow::-webkit-scrollbar{display:none}
+  .lg-colors{flex-wrap:nowrap;overflow-x:auto;width:100%;padding-bottom:4px;justify-content:flex-start;scrollbar-width:none}
+  .lg-colors::-webkit-scrollbar{display:none}
+  .lg-foot-in{flex-direction:column;gap:28px;padding:40px var(--side)}
+  /* drawer → bottom sheet */
+  .lg-overlay{align-items:flex-end;justify-content:center}
+  .lg-drawer{width:100%;height:auto;max-height:92vh;border-radius:22px 22px 0 0;padding:24px 16px 36px;animation:sheet .28s cubic-bezier(.22,1,.36,1)}
+  .lg-d-logo{height:180px}
+  .lg-pg-num{min-width:32px}
+}
+@media(max-width:380px){
+  .lg-hero-title{font-size:18px}
+  .lg-d-ko{font-size:21px}
+}
+</style>
+</head>
+<body>
+<div id="app" class="lg-root"></div>
+
+<script>
+/* ===== 설정 ===== */
+const BRANDFETCH_CLIENT_ID = "";
+const SUPABASE_URL = "https://ttdvoyzzpqufyiaetvxy.supabase.co";
+const LOGO_BUCKET = "logos";
+const DEFAULT_EXT = "png";
+const PAGE_SIZE = 16;
+
+const brandfetchUrl = (dom) => dom && BRANDFETCH_CLIENT_ID
+  ? `https://cdn.brandfetch.io/${dom}/w/400/h/120/logo?c=${BRANDFETCH_CLIENT_ID}` : null;
+const isStorageReady = SUPABASE_URL.includes(".supabase.co") && !SUPABASE_URL.includes("YOUR_PROJECT");
+const storageUrl = (logo) => isStorageReady ? `${SUPABASE_URL}/storage/v1/object/public/${LOGO_BUCKET}/${logo.file || logo.id + "." + DEFAULT_EXT}` : null;
+const sources = (logo) => [logo.img, storageUrl(logo), brandfetchUrl(DOMAINS[logo.id])].filter(Boolean);
+
+/* ===== 다국어 ===== */
+const STR = {
+  ko: { title:"A new logo library", search:"기업명으로 검색 (예: 토스, 네이버, ㅋㅋㅇ)", all:"전체",
+    sortPopular:"인기순", sortNewest:"최신순", sortName:"이름순", count:(n)=>`${n}개의 로고`,
+    empty:"검색 결과가 없어요", emptySub:"다른 키워드나 필터를 시도해 보세요.", reset:"필터 초기화",
+    upload:"로고 업로드 문의", uploadShort:"업로드 문의", goDownload:"다운로드 페이지로 이동",
+    palette:"공식 컬러", usage:"사용가이드", related:"관련 로고",
+    official:"공식 브랜드 페이지", aggregator:"외부 제공 사이트",
+    useFree:"자유 사용", useRestricted:"사용 제한 / 사전 승인", useGuideline:"가이드라인 준수",
+    copied:"복사됨", seed:"샘플 데이터 · 링크는 출시 전 검증 필요",
+    rights:"모든 로고의 저작권은 모두 각 로고의 저작권자에게 있습니다.\n로고 사용에 대한 라이센스 문의는 저작권자에게 문의해주세요." },
+  en: { title:"A new logo library", search:"Search by company (e.g. Toss, naver)", all:"All",
+    sortPopular:"Popular", sortNewest:"Newest", sortName:"Name", count:(n)=>`${n} logos`,
+    empty:"No results", emptySub:"Try a different keyword or filter.", reset:"Reset filters",
+    upload:"Upload inquiry", uploadShort:"Inquiry", goDownload:"Go to download page",
+    palette:"Official colors", usage:"Usage", related:"Related",
+    official:"Official brand page", aggregator:"Third-party source",
+    useFree:"Open use", useRestricted:"Restricted / approval", useGuideline:"Follow guideline",
+    copied:"Copied", seed:"Sample data · verify links before launch",
+    rights:"All logo copyrights belong to their respective owners.\nFor licensing, please contact the copyright holder." },
+};
+const USAGE_KEY = { free:"useFree", restricted:"useRestricted", guideline:"useGuideline" };
+const INDUSTRIES = ["IT · 테크","금융","뷰티 · 패션","F&B · 유통","제조 · 모빌리티","기타"];
+const IND_EN = { "IT · 테크":"IT · Tech", "금융":"Finance", "뷰티 · 패션":"Beauty · Fashion", "F&B · 유통":"F&B · Retail", "제조 · 모빌리티":"Manufacturing · Mobility", "기타":"Others" };
+const indLabel = (ind) => state.lang==="en" ? (IND_EN[ind]||ind) : ind;
+const COLOR_CATS = [
+  { key:"blue", ko:"파랑", en:"Blue", swatch:"#2563ff" },
+  { key:"green", ko:"초록", en:"Green", swatch:"#16a34a" },
+  { key:"red", ko:"빨강", en:"Red", swatch:"#e11d48" },
+  { key:"yellow", ko:"노랑", en:"Yellow", swatch:"#f5c518" },
+  { key:"orange", ko:"주황", en:"Orange", swatch:"#f97316" },
+  { key:"pink", ko:"핑크", en:"Pink", swatch:"#ec4899" },
+  { key:"black", ko:"검정", en:"Black", swatch:"#111111" },
+];
+const bf = (d) => `https://brandfetch.com/${d}`;
+
+/* ===== 데이터 ===== */
+const LOGOS = [
+  { id:"naver", ko:"네이버", en:"NAVER", ind:"IT · 테크", colorKey:"green",
+    colors:[{n:"Naver Green",h:"#03C75A"}], desc:"국내 1위 검색 포털", year:1999, pop:999, added:"2026-06-08", url:"https://www.navercorp.com/company/brandGuide", src:"official", usage:"guideline" },
+  { id:"kakao", ko:"카카오", en:"KAKAO", ind:"IT · 테크", colorKey:"yellow",
+    colors:[{n:"Kakao Yellow",h:"#FEE500"}], desc:"국민 메신저·플랫폼", year:1995, pop:998, added:"2026-06-07", url:"https://brandfetch.com/kakaocorp.com", src:"aggregator", usage:"restricted" },
+  { id:"line", ko:"라인", en:"LINE", ind:"IT · 테크", colorKey:"green",
+    colors:[{n:"LINE Green",h:"#06C755"}], desc:"글로벌 메신저", year:2011, pop:997, added:"2026-06-06", url:"https://brandfetch.com/line.me", src:"aggregator", usage:"guideline" },
+  { id:"nhn", ko:"NHN", en:"NHN", ind:"IT · 테크", colorKey:"green",
+    colors:[{n:"NHN Green",h:"#1EC800"}], desc:"IT 플랫폼", year:2013, pop:996, added:"2026-06-05", url:"https://brandfetch.com/nhn.com", src:"aggregator", usage:"guideline" },
+  { id:"daangn", ko:"당근", en:"Daangn", ind:"IT · 테크", colorKey:"orange",
+    colors:[{n:"Carrot Orange",h:"#FF6F0F"}], desc:"동네 기반 중고거래", year:2015, pop:995, added:"2026-06-04", url:"https://seed-design.io/docs/foundation/logo", src:"official", usage:"guideline" },
+  { id:"ohouse", ko:"오늘의집", en:"O!house", ind:"IT · 테크", colorKey:"blue",
+    colors:[{n:"Sky",h:"#35C5F0"}], desc:"라이프스타일 커머스", year:2014, pop:994, added:"2026-06-03", url:"https://brandfetch.com/ohou.se", src:"aggregator", usage:"guideline" },
+  { id:"yanolja", ko:"야놀자", en:"yanolja", ind:"IT · 테크", colorKey:"pink",
+    colors:[{n:"Yanolja Pink",h:"#FF3478"}], desc:"여행 테크", year:2005, pop:993, added:"2026-06-02", url:"https://brandfetch.com/yanolja.com", src:"aggregator", usage:"guideline" },
+  { id:"goodchoice", ko:"여기어때", en:"여기어때", ind:"IT · 테크", colorKey:"pink",
+    colors:[{n:"Pink",h:"#FF4081"}], desc:"여가·숙박 플랫폼", year:2014, pop:992, added:"2026-06-01", url:"https://brandfetch.com/goodchoice.kr", src:"aggregator", usage:"guideline" },
+  { id:"gabia", ko:"가비아", en:"Gabia", ind:"IT · 테크", colorKey:"blue",
+    colors:[{n:"Gabia Blue",h:"#006DB7"}], desc:"도메인·호스팅", year:1998, pop:991, added:"2026-05-31", url:"https://brandfetch.com/gabia.com", src:"aggregator", usage:"guideline" },
+  { id:"cafe24", ko:"카페24", en:"Cafe24", ind:"IT · 테크", colorKey:"blue",
+    colors:[{n:"Blue",h:"#0B5FFF"}], desc:"이커머스 플랫폼", year:1999, pop:990, added:"2026-05-30", url:"https://brandfetch.com/cafe24.com", src:"aggregator", usage:"guideline" },
+  { id:"nexon", ko:"넥슨", en:"NEXON", ind:"IT · 테크", colorKey:"yellow",
+    colors:[{n:"Nexon Yellow",h:"#FFC600"}], desc:"게임 퍼블리셔", year:1994, pop:989, added:"2026-05-29", url:"https://brandfetch.com/nexon.com", src:"aggregator", usage:"guideline" },
+  { id:"ncsoft", ko:"엔씨소프트", en:"NCSOFT", ind:"IT · 테크", colorKey:"black",
+    colors:[{n:"Ink",h:"#1A1A1A"}], desc:"게임 개발사", year:1997, pop:988, added:"2026-05-28", url:"https://brandfetch.com/ncsoft.com", src:"aggregator", usage:"guideline" },
+  { id:"netmarble", ko:"넷마블", en:"Netmarble", ind:"IT · 테크", colorKey:"blue",
+    colors:[{n:"Netmarble Blue",h:"#1E3D8F"}], desc:"모바일 게임", year:2000, pop:987, added:"2026-05-27", url:"https://brandfetch.com/netmarble.com", src:"aggregator", usage:"guideline" },
+  { id:"krafton", ko:"크래프톤", en:"KRAFTON", ind:"IT · 테크", colorKey:"black",
+    colors:[{n:"Ink",h:"#0E0E0E"}], desc:"배틀그라운드 개발사", year:2007, pop:986, added:"2026-05-26", url:"https://brandfetch.com/krafton.com", src:"aggregator", usage:"guideline" },
+  { id:"pearlabyss", ko:"펄어비스", en:"Pearl Abyss", ind:"IT · 테크", colorKey:"black",
+    colors:[{n:"Ink",h:"#111111"}], desc:"검은사막 개발사", year:2010, pop:985, added:"2026-05-25", url:"https://brandfetch.com/pearlabyss.com", src:"aggregator", usage:"guideline" },
+  { id:"smilegate", ko:"스마일게이트", en:"Smilegate", ind:"IT · 테크", colorKey:"orange",
+    colors:[{n:"Orange",h:"#FF7A00"}], desc:"크로스파이어 개발사", year:2002, pop:984, added:"2026-05-24", url:"https://brandfetch.com/smilegate.com", src:"aggregator", usage:"guideline" },
+  { id:"devsisters", ko:"데브시스터즈", en:"Devsisters", ind:"IT · 테크", colorKey:"orange",
+    colors:[{n:"Cookie Orange",h:"#F5A623"}], desc:"쿠키런 스튜디오", year:2007, pop:983, added:"2026-05-23", url:"https://www.devsisters.com/resource", src:"official", usage:"restricted" },
+  { id:"com2us", ko:"컴투스", en:"Com2uS", ind:"IT · 테크", colorKey:"red",
+    colors:[{n:"Red",h:"#E60012"}], desc:"모바일 게임", year:1998, pop:982, added:"2026-05-22", url:"https://brandfetch.com/com2us.com", src:"aggregator", usage:"guideline" },
+  { id:"kakaogames", ko:"카카오게임즈", en:"Kakao Games", ind:"IT · 테크", colorKey:"red",
+    colors:[{n:"Red",h:"#E84118"}], desc:"게임 퍼블리셔", year:2016, pop:981, added:"2026-05-21", url:"https://brandfetch.com/kakaogames.com", src:"aggregator", usage:"guideline" },
+  { id:"wemade", ko:"위메이드", en:"WEMADE", ind:"IT · 테크", colorKey:"red",
+    colors:[{n:"Red",h:"#E1251B"}], desc:"미르 시리즈", year:2000, pop:980, added:"2026-05-20", url:"https://brandfetch.com/wemade.com", src:"aggregator", usage:"guideline" },
+  { id:"skt", ko:"SK텔레콤", en:"SK telecom", ind:"IT · 테크", colorKey:"red",
+    colors:[{n:"SK Red",h:"#EA002C"}], desc:"이동통신", year:1984, pop:979, added:"2026-05-19", url:"https://brandfetch.com/sktelecom.com", src:"aggregator", usage:"guideline" },
+  { id:"kt", ko:"KT", en:"KT", ind:"IT · 테크", colorKey:"red",
+    colors:[{n:"KT Red",h:"#E60012"}], desc:"통신·미디어", year:1981, pop:978, added:"2026-05-18", url:"https://brandfetch.com/kt.com", src:"aggregator", usage:"guideline" },
+  { id:"lguplus", ko:"LG유플러스", en:"LG U+", ind:"IT · 테크", colorKey:"pink",
+    colors:[{n:"U+ Magenta",h:"#E6007E"}], desc:"이동통신", year:1996, pop:977, added:"2026-05-17", url:"https://brandfetch.com/lguplus.com", src:"aggregator", usage:"guideline" },
+  { id:"socar", ko:"쏘카", en:"SOCAR", ind:"IT · 테크", colorKey:"blue",
+    colors:[{n:"SOCAR Blue",h:"#0091FF"}], desc:"카셰어링", year:2011, pop:976, added:"2026-05-16", url:"https://brandfetch.com/socar.kr", src:"aggregator", usage:"guideline" },
+  { id:"kakaomobility", ko:"카카오모빌리티", en:"Kakao Mobility", ind:"IT · 테크", colorKey:"black",
+    colors:[{n:"Ink",h:"#1A1A1A"}], desc:"모빌리티 플랫폼", year:2017, pop:975, added:"2026-05-15", url:"https://brandfetch.com/kakaomobility.com", src:"aggregator", usage:"guideline" },
+  { id:"zigbang", ko:"직방", en:"Zigbang", ind:"IT · 테크", colorKey:"orange",
+    colors:[{n:"Orange",h:"#FF6E0D"}], desc:"부동산 플랫폼", year:2010, pop:974, added:"2026-05-14", url:"https://brandfetch.com/zigbang.com", src:"aggregator", usage:"guideline" },
+  { id:"bunjang", ko:"번개장터", en:"Bunjang", ind:"IT · 테크", colorKey:"orange",
+    colors:[{n:"Orange",h:"#FF4800"}], desc:"중고거래", year:2011, pop:973, added:"2026-05-13", url:"https://brandfetch.com/bunjang.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"watcha", ko:"왓챠", en:"WATCHA", ind:"IT · 테크", colorKey:"pink",
+    colors:[{n:"Watcha Pink",h:"#FF0558"}], desc:"영상 스트리밍", year:2011, pop:972, added:"2026-05-12", url:"https://brandfetch.com/watcha.com", src:"aggregator", usage:"guideline" },
+  { id:"naverwebtoon", ko:"네이버웹툰", en:"NAVER WEBTOON", ind:"IT · 테크", colorKey:"green",
+    colors:[{n:"Webtoon Green",h:"#00DC64"}], desc:"웹툰 플랫폼", year:2004, pop:971, added:"2026-05-11", url:"https://brandfetch.com/webtoons.com", src:"aggregator", usage:"guideline" },
+  { id:"wanted", ko:"원티드", en:"Wanted", ind:"IT · 테크", colorKey:"blue",
+    colors:[{n:"Blue",h:"#3366FF"}], desc:"채용 플랫폼", year:2015, pop:970, added:"2026-05-10", url:"https://brandfetch.com/wanted.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"jobkorea", ko:"잡코리아", en:"JOBKOREA", ind:"IT · 테크", colorKey:"blue",
+    colors:[{n:"Blue",h:"#0A66C2"}], desc:"채용 플랫폼", year:2004, pop:969, added:"2026-05-09", url:"https://brandfetch.com/jobkorea.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"saramin", ko:"사람인", en:"Saramin", ind:"IT · 테크", colorKey:"blue",
+    colors:[{n:"Blue",h:"#1A5FD0"}], desc:"채용 플랫폼", year:2005, pop:968, added:"2026-05-08", url:"https://brandfetch.com/saramin.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"poscodx", ko:"포스코DX", en:"posco DX", ind:"IT · 테크", colorKey:"blue",
+    colors:[{n:"Posco Blue",h:"#00A4E3"}], desc:"산업 DX", year:1989, pop:967, added:"2026-05-07", url:"https://brandfetch.com/poscodx.com", src:"aggregator", usage:"guideline" },
+  { id:"toss", ko:"토스", en:"toss", ind:"금융", colorKey:"blue",
+    colors:[{n:"Toss Blue",h:"#3182F6"}], desc:"금융 슈퍼앱", year:2015, pop:966, added:"2026-05-06", url:"https://brand.toss.im/", src:"official", usage:"guideline" },
+  { id:"kakaobank", ko:"카카오뱅크", en:"kakaobank", ind:"금융", colorKey:"yellow",
+    colors:[{n:"Yellow",h:"#FFE300"}], desc:"인터넷전문은행", year:2016, pop:965, added:"2026-05-05", url:"https://brandfetch.com/kakaobank.com", src:"aggregator", usage:"guideline" },
+  { id:"kbank", ko:"케이뱅크", en:"K bank", ind:"금융", colorKey:"blue",
+    colors:[{n:"Blue",h:"#0046FF"}], desc:"인터넷전문은행", year:2016, pop:964, added:"2026-05-04", url:"https://brandfetch.com/kbanknow.com", src:"aggregator", usage:"guideline" },
+  { id:"kbbank", ko:"KB국민은행", en:"KB", ind:"금융", colorKey:"yellow",
+    colors:[{n:"KB Yellow",h:"#FFBC00"}], desc:"리테일 뱅킹", year:2001, pop:963, added:"2026-05-03", url:"https://brandfetch.com/kbstar.com", src:"aggregator", usage:"guideline" },
+  { id:"shinhan", ko:"신한은행", en:"Shinhan", ind:"금융", colorKey:"blue",
+    colors:[{n:"Shinhan Blue",h:"#0046A0"}], desc:"은행", year:1982, pop:962, added:"2026-05-02", url:"https://brandfetch.com/shinhan.com", src:"aggregator", usage:"guideline" },
+  { id:"woori", ko:"우리은행", en:"Woori", ind:"금융", colorKey:"blue",
+    colors:[{n:"Woori Blue",h:"#0067AC"}], desc:"은행", year:1899, pop:961, added:"2026-05-01", url:"https://brandfetch.com/wooribank.com", src:"aggregator", usage:"guideline" },
+  { id:"hana", ko:"하나은행", en:"Hana", ind:"금융", colorKey:"green",
+    colors:[{n:"Hana Teal",h:"#008485"}], desc:"은행", year:1971, pop:960, added:"2026-04-30", url:"https://brandfetch.com/kebhana.com", src:"aggregator", usage:"guideline" },
+  { id:"nonghyup", ko:"NH농협", en:"NH", ind:"금융", colorKey:"yellow",
+    colors:[{n:"NH Yellow",h:"#FFB100"}], desc:"은행·금융", year:1961, pop:959, added:"2026-04-29", url:"https://brandfetch.com/nonghyup.com", src:"aggregator", usage:"guideline" },
+  { id:"ibk", ko:"IBK기업은행", en:"IBK", ind:"금융", colorKey:"blue",
+    colors:[{n:"Blue",h:"#0066B3"}], desc:"은행", year:1961, pop:958, added:"2026-04-28", url:"https://brandfetch.com/ibk.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"dunamu", ko:"두나무", en:"Dunamu", ind:"금융", colorKey:"black",
+    colors:[{n:"Ink",h:"#101014"}], desc:"핀테크·블록체인", year:2012, pop:957, added:"2026-04-27", url:"https://brandfetch.com/dunamu.com", src:"aggregator", usage:"guideline" },
+  { id:"upbit", ko:"업비트", en:"UPbit", ind:"금융", colorKey:"blue",
+    colors:[{n:"Upbit Navy",h:"#093687"}], desc:"디지털 자산 거래소", year:2017, pop:956, added:"2026-04-26", url:"https://brandfetch.com/upbit.com", src:"aggregator", usage:"guideline" },
+  { id:"bithumb", ko:"빗썸", en:"Bithumb", ind:"금융", colorKey:"orange",
+    colors:[{n:"Orange",h:"#F37321"}], desc:"가상자산 거래소", year:2014, pop:955, added:"2026-04-25", url:"https://brandfetch.com/bithumb.com", src:"aggregator", usage:"guideline" },
+  { id:"samsunglife", ko:"삼성생명", en:"Samsung Life", ind:"금융", colorKey:"blue",
+    colors:[{n:"Samsung Blue",h:"#1428A0"}], desc:"생명보험", year:1957, pop:954, added:"2026-04-24", url:"https://brandfetch.com/samsunglife.com", src:"aggregator", usage:"guideline" },
+  { id:"samsungfire", ko:"삼성화재", en:"Samsung Fire", ind:"금융", colorKey:"blue",
+    colors:[{n:"Samsung Blue",h:"#1428A0"}], desc:"손해보험", year:1952, pop:953, added:"2026-04-23", url:"https://brandfetch.com/samsungfire.com", src:"aggregator", usage:"guideline" },
+  { id:"hyundaicard", ko:"현대카드", en:"Hyundai Card", ind:"금융", colorKey:"black",
+    colors:[{n:"Black",h:"#000000"}], desc:"신용카드", year:1995, pop:952, added:"2026-04-22", url:"https://brandfetch.com/hyundaicard.com", src:"aggregator", usage:"guideline" },
+  { id:"shinhancard", ko:"신한카드", en:"Shinhan Card", ind:"금융", colorKey:"blue",
+    colors:[{n:"Blue",h:"#0046A0"}], desc:"신용카드", year:2007, pop:951, added:"2026-04-21", url:"https://brandfetch.com/shinhancard.com", src:"aggregator", usage:"guideline" },
+  { id:"mirae", ko:"미래에셋", en:"Mirae Asset", ind:"금융", colorKey:"orange",
+    colors:[{n:"Orange",h:"#F47216"}], desc:"금융그룹", year:1997, pop:950, added:"2026-04-20", url:"https://brandfetch.com/miraeasset.com", src:"aggregator", usage:"guideline" },
+  { id:"kiwoom", ko:"키움증권", en:"Kiwoom", ind:"금융", colorKey:"red",
+    colors:[{n:"Red",h:"#C8102E"}], desc:"증권", year:2000, pop:949, added:"2026-04-19", url:"https://brandfetch.com/kiwoom.com", src:"aggregator", usage:"guideline" },
+  { id:"koreainvestment", ko:"한국투자증권", en:"Korea Investment", ind:"금융", colorKey:"blue",
+    colors:[{n:"Blue",h:"#0A4595"}], desc:"증권", year:1974, pop:948, added:"2026-04-18", url:"https://brandfetch.com/securities.koreainvestment.com", src:"aggregator", usage:"guideline" },
+  { id:"samsung", ko:"삼성", en:"SAMSUNG", ind:"제조 · 모빌리티", colorKey:"blue",
+    colors:[{n:"Samsung Blue",h:"#1428A0"}], desc:"글로벌 전자·반도체", year:1969, pop:947, added:"2026-04-17", url:"https://brandfetch.com/samsung.com", src:"aggregator", usage:"restricted" },
+  { id:"skhynix", ko:"SK 하이닉스", en:"SK hynix", ind:"제조 · 모빌리티", colorKey:"red",
+    colors:[{n:"SK Red",h:"#EA002C"}], desc:"메모리 반도체", year:1983, pop:946, added:"2026-04-16", url:"https://brandfetch.com/skhynix.com", src:"aggregator", usage:"guideline" },
+  { id:"lgelectronics", ko:"LG전자", en:"LG Electronics", ind:"제조 · 모빌리티", colorKey:"red",
+    colors:[{n:"LG Red",h:"#A50034"}], desc:"가전·전자", year:1958, pop:945, added:"2026-04-15", url:"https://brandfetch.com/lge.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"lg", ko:"LG", en:"LG", ind:"제조 · 모빌리티", colorKey:"red",
+    colors:[{n:"LG Red",h:"#A50034"}], desc:"그룹 지주", year:1947, pop:944, added:"2026-04-14", url:"https://brandfetch.com/lg.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"hyundai", ko:"현대자동차", en:"HYUNDAI", ind:"제조 · 모빌리티", colorKey:"blue",
+    colors:[{n:"Hyundai Navy",h:"#002C5F"}], desc:"자동차", year:1967, pop:943, added:"2026-04-13", url:"https://brandfetch.com/hyundai.com", src:"aggregator", usage:"guideline" },
+  { id:"kia", ko:"기아", en:"KIA", ind:"제조 · 모빌리티", colorKey:"black",
+    colors:[{n:"Kia Black",h:"#05141F"}], desc:"자동차", year:1944, pop:942, added:"2026-04-12", url:"https://brandfetch.com/kia.com", src:"aggregator", usage:"guideline" },
+  { id:"genesis", ko:"제네시스", en:"GENESIS", ind:"제조 · 모빌리티", colorKey:"black",
+    colors:[{n:"Ink",h:"#1A1A1A"}], desc:"럭셔리 자동차", year:2015, pop:941, added:"2026-04-11", url:"https://brandfetch.com/genesis.com", src:"aggregator", usage:"restricted" },
+  { id:"hyundaimobis", ko:"현대모비스", en:"Hyundai Mobis", ind:"제조 · 모빌리티", colorKey:"blue",
+    colors:[{n:"Navy",h:"#002C5F"}], desc:"자동차 부품", year:1977, pop:940, added:"2026-04-10", url:"https://brandfetch.com/mobis.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"autoever", ko:"현대오토에버", en:"HYUNDAI AutoEver", ind:"제조 · 모빌리티", colorKey:"blue",
+    colors:[{n:"Hyundai Navy",h:"#002C5F"}], desc:"모빌리티 SW", year:2000, pop:939, added:"2026-04-09", url:"https://brandfetch.com/hyundai-autoever.com", src:"aggregator", usage:"guideline" },
+  { id:"posco", ko:"포스코", en:"POSCO", ind:"제조 · 모빌리티", colorKey:"blue",
+    colors:[{n:"POSCO Blue",h:"#004191"}], desc:"철강", year:1968, pop:938, added:"2026-04-08", url:"https://brandfetch.com/posco.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"sk", ko:"SK", en:"SK", ind:"제조 · 모빌리티", colorKey:"red",
+    colors:[{n:"SK Red",h:"#EA002C"}], desc:"그룹 지주", year:1953, pop:937, added:"2026-04-07", url:"https://brandfetch.com/sk.com", src:"aggregator", usage:"guideline" },
+  { id:"skinnovation", ko:"SK이노베이션", en:"SK innovation", ind:"제조 · 모빌리티", colorKey:"red",
+    colors:[{n:"Red",h:"#E4002B"}], desc:"에너지·화학", year:1962, pop:936, added:"2026-04-06", url:"https://brandfetch.com/skinnovation.com", src:"aggregator", usage:"guideline" },
+  { id:"lgchem", ko:"LG화학", en:"LG Chem", ind:"제조 · 모빌리티", colorKey:"red",
+    colors:[{n:"LG Red",h:"#A50034"}], desc:"화학", year:1947, pop:935, added:"2026-04-05", url:"https://brandfetch.com/lgchem.com", src:"aggregator", usage:"guideline" },
+  { id:"lgensol", ko:"LG에너지솔루션", en:"LG Energy Solution", ind:"제조 · 모빌리티", colorKey:"red",
+    colors:[{n:"LG Red",h:"#A50034"}], desc:"배터리", year:2020, pop:934, added:"2026-04-04", url:"https://brandfetch.com/lgensol.com", src:"aggregator", usage:"guideline" },
+  { id:"samsungsdi", ko:"삼성SDI", en:"Samsung SDI", ind:"제조 · 모빌리티", colorKey:"blue",
+    colors:[{n:"Samsung Blue",h:"#1428A0"}], desc:"배터리·소재", year:1970, pop:933, added:"2026-04-03", url:"https://brandfetch.com/samsungsdi.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"hanwha", ko:"한화", en:"Hanwha", ind:"제조 · 모빌리티", colorKey:"orange",
+    colors:[{n:"Hanwha Orange",h:"#F37321"}], desc:"그룹", year:1952, pop:932, added:"2026-04-02", url:"https://brandfetch.com/hanwha.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"doosan", ko:"두산", en:"DOOSAN", ind:"제조 · 모빌리티", colorKey:"blue",
+    colors:[{n:"Doosan Blue",h:"#003876"}], desc:"중공업", year:1896, pop:931, added:"2026-04-01", url:"https://brandfetch.com/doosan.com", src:"aggregator", usage:"guideline" },
+  { id:"hdhyundai", ko:"HD현대", en:"HD HYUNDAI", ind:"제조 · 모빌리티", colorKey:"green",
+    colors:[{n:"Teal",h:"#00A19C"}], desc:"조선·중공업", year:1972, pop:930, added:"2026-03-31", url:"https://brandfetch.com/hd.com", src:"aggregator", usage:"guideline" },
+  { id:"hankooktire", ko:"한국타이어", en:"Hankook Tire", ind:"제조 · 모빌리티", colorKey:"orange",
+    colors:[{n:"Orange",h:"#FF6F0F"}], desc:"타이어", year:1941, pop:929, added:"2026-03-30", url:"https://brandfetch.com/hankooktire.com", src:"aggregator", usage:"guideline" },
+  { id:"kumhotire", ko:"금호타이어", en:"Kumho Tire", ind:"제조 · 모빌리티", colorKey:"red",
+    colors:[{n:"Red",h:"#E60012"}], desc:"타이어", year:1960, pop:928, added:"2026-03-29", url:"https://brandfetch.com/kumhotire.com", src:"aggregator", usage:"guideline" },
+  { id:"hlmando", ko:"HL만도", en:"HL Mando", ind:"제조 · 모빌리티", colorKey:"blue",
+    colors:[{n:"Blue",h:"#0067B1"}], desc:"자동차 부품", year:1962, pop:927, added:"2026-03-28", url:"https://brandfetch.com/hlmando.com", src:"aggregator", usage:"guideline" },
+  { id:"soil", ko:"에쓰오일", en:"S-OIL", ind:"제조 · 모빌리티", colorKey:"yellow",
+    colors:[{n:"Yellow",h:"#FDB913"}], desc:"정유", year:1976, pop:926, added:"2026-03-27", url:"https://brandfetch.com/s-oil.com", src:"aggregator", usage:"guideline" },
+  { id:"gscaltex", ko:"GS칼텍스", en:"GS Caltex", ind:"제조 · 모빌리티", colorKey:"green",
+    colors:[{n:"GS Green",h:"#00A04A"}], desc:"정유", year:1967, pop:925, added:"2026-03-26", url:"https://brandfetch.com/gscaltex.com", src:"aggregator", usage:"guideline" },
+  { id:"amore", ko:"아모레퍼시픽", en:"AMOREPACIFIC", ind:"뷰티 · 패션", colorKey:"black",
+    colors:[{n:"Ink",h:"#1A1A1A"}], desc:"뷰티 그룹", year:1945, pop:924, added:"2026-03-25", url:"https://brandfetch.com/apgroup.com", src:"aggregator", usage:"restricted" },
+  { id:"lghnh", ko:"LG생활건강", en:"LG H&H", ind:"뷰티 · 패션", colorKey:"red",
+    colors:[{n:"LG Red",h:"#A50034"}], desc:"생활·뷰티", year:1947, pop:923, added:"2026-03-24", url:"https://brandfetch.com/lghnh.com", src:"aggregator", usage:"guideline" },
+  { id:"oliveyoung", ko:"올리브영", en:"OLIVE YOUNG", ind:"뷰티 · 패션", colorKey:"green",
+    colors:[{n:"Olive Green",h:"#8BC53F"}], desc:"H&B 스토어", year:1999, pop:922, added:"2026-03-23", url:"https://brandfetch.com/oliveyoung.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"innisfree", ko:"이니스프리", en:"innisfree", ind:"뷰티 · 패션", colorKey:"green",
+    colors:[{n:"Green",h:"#4CA15A"}], desc:"화장품", year:2000, pop:921, added:"2026-03-22", url:"https://brandfetch.com/innisfree.com", src:"aggregator", usage:"guideline" },
+  { id:"musinsa", ko:"무신사", en:"MUSINSA", ind:"뷰티 · 패션", colorKey:"black",
+    colors:[{n:"Black",h:"#000000"}], desc:"패션 커머스", year:2001, pop:920, added:"2026-03-21", url:"https://brandfetch.com/musinsa.com", src:"aggregator", usage:"guideline" },
+  { id:"zigzag", ko:"지그재그", en:"ZIGZAG", ind:"뷰티 · 패션", colorKey:"pink",
+    colors:[{n:"ZZ Pink",h:"#FA6EE0"}], desc:"여성 패션 커머스", year:2015, pop:919, added:"2026-03-20", url:"https://brandfetch.com/zigzag.kr", src:"aggregator", usage:"guideline" },
+  { id:"gentlemonster", ko:"젠틀몬스터", en:"GENTLE MONSTER", ind:"뷰티 · 패션", colorKey:"black",
+    colors:[{n:"Black",h:"#0A0A0A"}], desc:"아이웨어", year:2011, pop:918, added:"2026-03-19", url:"https://brandfetch.com/gentlemonster.com", src:"aggregator", usage:"restricted" },
+  { id:"apr", ko:"에이피알", en:"APR", ind:"뷰티 · 패션", colorKey:"black",
+    colors:[{n:"Black",h:"#111111"}], desc:"뷰티테크", year:2014, pop:917, added:"2026-03-18", url:"https://brandfetch.com/apr-corp.com", src:"aggregator", usage:"guideline" },
+  { id:"kream", ko:"크림", en:"KREAM", ind:"뷰티 · 패션", colorKey:"black",
+    colors:[{n:"Black",h:"#000000"}], desc:"한정판 거래", year:2020, pop:916, added:"2026-03-17", url:"https://brandfetch.com/kream.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"fila", ko:"휠라", en:"FILA", ind:"뷰티 · 패션", colorKey:"blue",
+    colors:[{n:"Navy",h:"#03234B"}], desc:"스포츠 패션", year:1911, pop:915, added:"2026-03-16", url:"https://brandfetch.com/fila.com", src:"aggregator", usage:"guideline" },
+  { id:"kolon", ko:"코오롱", en:"KOLON", ind:"뷰티 · 패션", colorKey:"green",
+    colors:[{n:"Green",h:"#00A95C"}], desc:"패션·소재", year:1957, pop:914, added:"2026-03-15", url:"https://brandfetch.com/kolon.com", src:"aggregator", usage:"guideline" },
+  { id:"thehandsome", ko:"한섬", en:"HANDSOME", ind:"뷰티 · 패션", colorKey:"black",
+    colors:[{n:"Ink",h:"#1A1A1A"}], desc:"패션", year:1987, pop:913, added:"2026-03-14", url:"https://brandfetch.com/thehandsome.com", src:"aggregator", usage:"guideline" },
+  { id:"missha", ko:"미샤", en:"MISSHA", ind:"뷰티 · 패션", colorKey:"red",
+    colors:[{n:"Red",h:"#E2231A"}], desc:"화장품", year:2000, pop:912, added:"2026-03-13", url:"https://brandfetch.com/missha.com", src:"aggregator", usage:"guideline" },
+  { id:"naturerepublic", ko:"네이처리퍼블릭", en:"NATURE REPUBLIC", ind:"뷰티 · 패션", colorKey:"green",
+    colors:[{n:"Green",h:"#7AB800"}], desc:"화장품", year:2009, pop:911, added:"2026-03-12", url:"https://brandfetch.com/naturerepublic.com", src:"aggregator", usage:"guideline" },
+  { id:"coupang", ko:"쿠팡", en:"COUPANG", ind:"F&B · 유통", colorKey:"red",
+    colors:[{n:"Coupang Red",h:"#E03327"}], desc:"이커머스", year:2010, pop:910, added:"2026-03-11", url:"https://brandfetch.com/coupang.com", src:"aggregator", usage:"guideline" },
+  { id:"baemin", ko:"배달의민족", en:"Baemin", ind:"F&B · 유통", colorKey:"green",
+    colors:[{n:"Baemin Mint",h:"#2AC1BC"}], desc:"음식 배달", year:2010, pop:909, added:"2026-03-10", url:"https://brandfetch.com/baemin.com", src:"aggregator", usage:"guideline" },
+  { id:"kurly", ko:"컬리", en:"Kurly", ind:"F&B · 유통", colorKey:"pink",
+    colors:[{n:"Kurly Purple",h:"#5F0080"}], desc:"새벽배송 커머스", year:2014, pop:908, added:"2026-03-09", url:"https://brandfetch.com/kurly.com", src:"aggregator", usage:"guideline" },
+  { id:"emart", ko:"이마트", en:"emart", ind:"F&B · 유통", colorKey:"yellow",
+    colors:[{n:"emart Yellow",h:"#FFD040"}], desc:"대형마트", year:1993, pop:907, added:"2026-03-08", url:"https://brandfetch.com/emart.com", src:"aggregator", usage:"guideline" },
+  { id:"shinsegae", ko:"신세계", en:"SHINSEGAE", ind:"F&B · 유통", colorKey:"red",
+    colors:[{n:"Red",h:"#CC0000"}], desc:"백화점·유통", year:1930, pop:906, added:"2026-03-07", url:"https://brandfetch.com/shinsegae.com", src:"aggregator", usage:"guideline" },
+  { id:"lottemart", ko:"롯데마트", en:"Lotte Mart", ind:"F&B · 유통", colorKey:"red",
+    colors:[{n:"Red",h:"#DA291C"}], desc:"대형마트", year:1998, pop:905, added:"2026-03-06", url:"https://brandfetch.com/lottemart.com", src:"aggregator", usage:"guideline" },
+  { id:"homeplus", ko:"홈플러스", en:"Homeplus", ind:"F&B · 유통", colorKey:"red",
+    colors:[{n:"Red",h:"#ED1C24"}], desc:"대형마트", year:1997, pop:904, added:"2026-03-05", url:"https://brandfetch.com/homeplus.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"gs25", ko:"GS25", en:"GS25", ind:"F&B · 유통", colorKey:"blue",
+    colors:[{n:"GS Blue",h:"#00B0EB"}], desc:"편의점", year:1990, pop:903, added:"2026-03-04", url:"https://brandfetch.com/gs25.gsretail.com", src:"aggregator", usage:"guideline" },
+  { id:"cu", ko:"CU", en:"CU", ind:"F&B · 유통", colorKey:"pink",
+    colors:[{n:"Purple",h:"#6A1B9A"}], desc:"편의점", year:1990, pop:902, added:"2026-03-03", url:"https://brandfetch.com/cu.bgfretail.com", src:"aggregator", usage:"guideline" },
+  { id:"cj", ko:"CJ제일제당", en:"CJ CheilJedang", ind:"F&B · 유통", colorKey:"red",
+    colors:[{n:"CJ Orange",h:"#FF671F"}], desc:"식품", year:1953, pop:901, added:"2026-03-02", url:"https://brandfetch.com/cj.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"nongshim", ko:"농심", en:"NONGSHIM", ind:"F&B · 유통", colorKey:"red",
+    colors:[{n:"Red",h:"#DA251D"}], desc:"식품", year:1965, pop:900, added:"2026-03-01", url:"https://brandfetch.com/nongshim.com", src:"aggregator", usage:"guideline" },
+  { id:"ottogi", ko:"오뚜기", en:"OTTOGI", ind:"F&B · 유통", colorKey:"red",
+    colors:[{n:"Red",h:"#E60012"}], desc:"식품", year:1969, pop:899, added:"2026-02-28", url:"https://brandfetch.com/ottogi.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"orion", ko:"오리온", en:"ORION", ind:"F&B · 유통", colorKey:"blue",
+    colors:[{n:"Blue",h:"#003DA5"}], desc:"제과", year:1956, pop:898, added:"2026-02-27", url:"https://brandfetch.com/orionworld.com", src:"aggregator", usage:"guideline" },
+  { id:"samyang", ko:"삼양식품", en:"Samyang", ind:"F&B · 유통", colorKey:"red",
+    colors:[{n:"Red",h:"#E2001A"}], desc:"라면", year:1961, pop:897, added:"2026-02-26", url:"https://brandfetch.com/samyangfoods.com", src:"aggregator", usage:"guideline" },
+  { id:"hitejinro", ko:"하이트진로", en:"HiteJinro", ind:"F&B · 유통", colorKey:"blue",
+    colors:[{n:"Blue",h:"#0067B3"}], desc:"주류", year:1924, pop:896, added:"2026-02-25", url:"https://brandfetch.com/hitejinro.com", src:"aggregator", usage:"guideline" },
+  { id:"megacoffee", ko:"메가커피", en:"MEGA Coffee", ind:"F&B · 유통", colorKey:"yellow",
+    colors:[{n:"Yellow",h:"#FFC600"}], desc:"커피 프랜차이즈", year:2015, pop:895, added:"2026-02-24", url:"https://brandfetch.com/mgccoffee.com", src:"aggregator", usage:"guideline" },
+  { id:"bbq", ko:"BBQ", en:"BBQ", ind:"F&B · 유통", colorKey:"yellow",
+    colors:[{n:"Yellow",h:"#FFC20E"}], desc:"치킨", year:1995, pop:894, added:"2026-02-23", url:"https://brandfetch.com/bbq.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"kyochon", ko:"교촌치킨", en:"KyoChon", ind:"F&B · 유통", colorKey:"red",
+    colors:[{n:"Red",h:"#B11116"}], desc:"치킨", year:1991, pop:893, added:"2026-02-22", url:"https://brandfetch.com/kyochon.com", src:"aggregator", usage:"guideline" },
+  { id:"daiso", ko:"다이소", en:"DAISO", ind:"F&B · 유통", colorKey:"red",
+    colors:[{n:"Red",h:"#E60012"}], desc:"생활용품", year:1997, pop:892, added:"2026-02-21", url:"https://brandfetch.com/daiso.co.kr", src:"aggregator", usage:"guideline" },
+  { id:"hybe", ko:"HYBE", en:"HYBE", ind:"기타", colorKey:"black",
+    colors:[{n:"Ink",h:"#1A1A1A"}], desc:"엔터테인먼트", year:2005, pop:891, added:"2026-02-20", url:"https://brandfetch.com/hybecorp.com", src:"aggregator", usage:"restricted" },
+  { id:"sm", ko:"SM엔터테인먼트", en:"SM", ind:"기타", colorKey:"pink",
+    colors:[{n:"Magenta",h:"#E6007E"}], desc:"엔터테인먼트", year:1995, pop:890, added:"2026-02-19", url:"https://brandfetch.com/smentertainment.com", src:"aggregator", usage:"restricted" },
+  { id:"jyp", ko:"JYP엔터테인먼트", en:"JYP", ind:"기타", colorKey:"blue",
+    colors:[{n:"Blue",h:"#0046FF"}], desc:"엔터테인먼트", year:1997, pop:889, added:"2026-02-18", url:"https://brandfetch.com/jype.com", src:"aggregator", usage:"restricted" },
+  { id:"yg", ko:"YG엔터테인먼트", en:"YG", ind:"기타", colorKey:"black",
+    colors:[{n:"Black",h:"#000000"}], desc:"엔터테인먼트", year:1996, pop:888, added:"2026-02-17", url:"https://brandfetch.com/ygfamily.com", src:"aggregator", usage:"restricted" },
+  { id:"cjenm", ko:"CJ ENM", en:"CJ ENM", ind:"기타", colorKey:"red",
+    colors:[{n:"Red",h:"#FF5A5F"}], desc:"미디어·콘텐츠", year:1995, pop:887, added:"2026-02-16", url:"https://brandfetch.com/cjenm.com", src:"aggregator", usage:"restricted" },
+  { id:"megastudy", ko:"메가스터디", en:"Megastudy", ind:"기타", colorKey:"blue",
+    colors:[{n:"Blue",h:"#1A4FA0"}], desc:"교육", year:2000, pop:886, added:"2026-02-15", url:"https://brandfetch.com/megastudy.net", src:"aggregator", usage:"guideline" },
+  { id:"hanssem", ko:"한샘", en:"HANSSEM", ind:"기타", colorKey:"blue",
+    colors:[{n:"Blue",h:"#0E4DA4"}], desc:"홈인테리어", year:1970, pop:885, added:"2026-02-14", url:"https://brandfetch.com/hanssem.com", src:"aggregator", usage:"guideline" },
+  { id:"koreanair", ko:"대한항공", en:"Korean Air", ind:"기타", colorKey:"blue",
+    colors:[{n:"Korean Air Blue",h:"#00256C"}], desc:"항공", year:1969, pop:884, added:"2026-02-13", url:"https://brandfetch.com/koreanair.com", src:"aggregator", usage:"restricted" },
+  { id:"jejuair", ko:"제주항공", en:"Jeju Air", ind:"기타", colorKey:"orange",
+    colors:[{n:"Orange",h:"#FF6F0F"}], desc:"항공", year:2005, pop:883, added:"2026-02-12", url:"https://brandfetch.com/jejuair.net", src:"aggregator", usage:"guideline" },
+  { id:"paradise", ko:"파라다이스", en:"PARADISE", ind:"기타", colorKey:"black",
+    colors:[{n:"Ink",h:"#1A1A1A"}], desc:"리조트·카지노", year:1972, pop:882, added:"2026-02-11", url:"https://brandfetch.com/paradise.co.kr", src:"aggregator", usage:"guideline" },
+];
+const DOMAINS = {
+  naver:"naver.com", kakao:"kakaocorp.com", line:"line.me", nhn:"nhn.com",
+  daangn:"daangn.com", ohouse:"ohou.se", yanolja:"yanolja.com", goodchoice:"goodchoice.kr",
+  gabia:"gabia.com", cafe24:"cafe24.com", nexon:"nexon.com", ncsoft:"ncsoft.com",
+  netmarble:"netmarble.com", krafton:"krafton.com", pearlabyss:"pearlabyss.com", smilegate:"smilegate.com",
+  devsisters:"devsisters.com", com2us:"com2us.com", kakaogames:"kakaogames.com", wemade:"wemade.com",
+  skt:"sktelecom.com", kt:"kt.com", lguplus:"lguplus.com", socar:"socar.kr",
+  kakaomobility:"kakaomobility.com", zigbang:"zigbang.com", bunjang:"bunjang.co.kr", watcha:"watcha.com",
+  naverwebtoon:"webtoons.com", wanted:"wanted.co.kr", jobkorea:"jobkorea.co.kr", saramin:"saramin.co.kr",
+  poscodx:"poscodx.com", toss:"toss.im", kakaobank:"kakaobank.com", kbank:"kbanknow.com",
+  kbbank:"kbstar.com", shinhan:"shinhan.com", woori:"wooribank.com", hana:"kebhana.com",
+  nonghyup:"nonghyup.com", ibk:"ibk.co.kr", dunamu:"dunamu.com", upbit:"upbit.com",
+  bithumb:"bithumb.com", samsunglife:"samsunglife.com", samsungfire:"samsungfire.com", hyundaicard:"hyundaicard.com",
+  shinhancard:"shinhancard.com", mirae:"miraeasset.com", kiwoom:"kiwoom.com", koreainvestment:"securities.koreainvestment.com",
+  samsung:"samsung.com", skhynix:"skhynix.com", lgelectronics:"lge.co.kr", lg:"lg.co.kr",
+  hyundai:"hyundai.com", kia:"kia.com", genesis:"genesis.com", hyundaimobis:"mobis.co.kr",
+  autoever:"hyundai-autoever.com", posco:"posco.co.kr", sk:"sk.com", skinnovation:"skinnovation.com",
+  lgchem:"lgchem.com", lgensol:"lgensol.com", samsungsdi:"samsungsdi.co.kr", hanwha:"hanwha.co.kr",
+  doosan:"doosan.com", hdhyundai:"hd.com", hankooktire:"hankooktire.com", kumhotire:"kumhotire.com",
+  hlmando:"hlmando.com", soil:"s-oil.com", gscaltex:"gscaltex.com", amore:"apgroup.com",
+  lghnh:"lghnh.com", oliveyoung:"oliveyoung.co.kr", innisfree:"innisfree.com", musinsa:"musinsa.com",
+  zigzag:"zigzag.kr", gentlemonster:"gentlemonster.com", apr:"apr-corp.com", kream:"kream.co.kr",
+  fila:"fila.com", kolon:"kolon.com", thehandsome:"thehandsome.com", missha:"missha.com",
+  naturerepublic:"naturerepublic.com", coupang:"coupang.com", baemin:"baemin.com", kurly:"kurly.com",
+  emart:"emart.com", shinsegae:"shinsegae.com", lottemart:"lottemart.com", homeplus:"homeplus.co.kr",
+  gs25:"gs25.gsretail.com", cu:"cu.bgfretail.com", cj:"cj.co.kr", nongshim:"nongshim.com",
+  ottogi:"ottogi.co.kr", orion:"orionworld.com", samyang:"samyangfoods.com", hitejinro:"hitejinro.com",
+  megacoffee:"mgccoffee.com", bbq:"bbq.co.kr", kyochon:"kyochon.com", daiso:"daiso.co.kr",
+  hybe:"hybecorp.com", sm:"smentertainment.com", jyp:"jype.com", yg:"ygfamily.com",
+  cjenm:"cjenm.com", megastudy:"megastudy.net", hanssem:"hanssem.com", koreanair:"koreanair.com",
+  jejuair:"jejuair.net", paradise:"paradise.co.kr",
+};
+
+/* ===== 상태 ===== */
+const state = { lang:"ko", q:"", ind:null, color:null, sort:"popular", page:1, active:null };
+const SRC_CHAINS = {};
+const byId = (id) => LOGOS.find((l)=>l.id===id);
+const esc = (s) => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const CHO = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+const toCho = (s)=>s.split("").map((ch)=>{const c=ch.charCodeAt(0)-0xac00;return (c>=0&&c<=11171)?CHO[Math.floor(c/588)]:ch;}).join("");
+
+function filtered(){
+  const needle = state.q.trim().toLowerCase();
+  let arr = LOGOS.filter((l)=>{
+    if(state.ind && l.ind!==state.ind) return false;
+    if(state.color && l.colorKey!==state.color) return false;
+    if(!needle) return true;
+    const hay = `${l.ko} ${l.en}`.toLowerCase();
+    const cho = toCho(l.ko);
+    return hay.includes(needle) || cho.includes(state.q.trim()) || (toCho(needle) && cho.includes(toCho(needle)));
+  });
+  arr.sort((a,b)=>{
+    if(state.sort==="popular") return b.pop-a.pop;
+    if(state.sort==="newest") return a.added<b.added?1:-1;
+    return a.ko.localeCompare(b.ko,"ko");
+  });
+  return arr;
+}
+
+/* 로고 이미지 (img → Supabase → Brandfetch → 워드마크) */
+function logoMarkup(logo, variant){
+  const chain = sources(logo); SRC_CHAINS[logo.id]=chain;
+  const cls = variant==="drawer" ? "lg-d-img" : (variant==="rel" ? "" : "lg-img");
+  if(!chain.length) return `<span class="lg-wordmark">${esc(logo.en)}</span>`;
+  return `<img class="${cls}" src="${chain[0]}" alt="${esc(logo.en)}" loading="lazy" data-id="${logo.id}" data-idx="0" onerror="logoFail(this)">`;
+}
+function logoFail(el){
+  const chain = SRC_CHAINS[el.dataset.id]||[]; const i=(+el.dataset.idx)+1;
+  if(chain[i]){ el.dataset.idx=i; el.src=chain[i]; return; }
+  const span=document.createElement("span"); span.className="lg-wordmark"; span.textContent=el.alt; el.replaceWith(span);
+}
+
+/* ===== 렌더 ===== */
+const MARK = `<svg class="lg-mark" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 2.5 8 9 2 15.5h3.4L9 11.4l3.6 4.1H16L10 9l6-6.5h-3.4L9 6.6 5.4 2.5H2Z" fill="currentColor"/></svg>`;
+
+function cardHTML(l){
+  return `<button class="lg-card" data-id="${l.id}">
+    <span class="lg-cardchip">${esc(indLabel(l.ind))}</span>
+    <div class="lg-card-logo" style="--brand:${l.colors[0].h}">${logoMarkup(l,"card")}</div>
+    <div class="lg-card-meta"><span class="lg-card-ko">${esc(l.ko)}</span><span class="lg-card-en">${esc(l.en)}</span></div>
+  </button>`;
+}
+function pageList(cur, total){
+  if(total<=7) return Array.from({length:total},(_,i)=>i+1);
+  const out=[1];
+  const s=Math.max(2,cur-1), e=Math.min(total-1,cur+1);
+  if(s>2) out.push("...");
+  for(let i=s;i<=e;i++) out.push(i);
+  if(e<total-1) out.push("...");
+  out.push(total);
+  return out;
+}
+function gridSection(){
+  const t=STR[state.lang]; const arr=filtered();
+  const total=Math.max(1,Math.ceil(arr.length/PAGE_SIZE));
+  if(state.page>total) state.page=total;
+  const slice=arr.slice((state.page-1)*PAGE_SIZE, state.page*PAGE_SIZE);
+  if(!arr.length){
+    const hasFilter=state.q||state.ind||state.color;
+    return `<div class="lg-empty"><div class="lg-empty-mk">∅</div><p class="lg-empty-t">${t.empty}</p><p class="lg-empty-s">${t.emptySub}</p>${hasFilter?`<button class="lg-reset" id="resetBtn">${t.reset}</button>`:""}</div>`;
+  }
+  const pager = total>1 ? `<div class="lg-pager">
+    <button class="lg-pg-btn" data-pg="prev" ${state.page===1?"disabled":""} aria-label="prev">‹</button>
+    ${pageList(state.page,total).map((p)=> p==="..." ? `<span class="lg-pg-dots">…</span>` : `<button class="lg-pg-num ${p===state.page?"on":""}" data-pg="${p}">${p}</button>`).join("")}
+    <button class="lg-pg-btn" data-pg="next" ${state.page===total?"disabled":""} aria-label="next">›</button>
+  </div>` : "";
+  return `<div class="lg-grid">${slice.map(cardHTML).join("")}</div>${pager}`;
+}
+function refreshGrid(){
+  document.getElementById("gridSection").innerHTML = gridSection();
+  document.getElementById("count").innerHTML = countHTML();
+}
+function countHTML(){
+  const t=STR[state.lang]; const n=filtered().length;
+  const s=t.count(n);
+  return s.replace(String(n), `<b>${n}</b>`);
+}
+
+function drawerHTML(l){
+  const t=STR[state.lang];
+  const related = LOGOS.filter((x)=>x.ind===l.ind && x.id!==l.id).slice(0,4);
+  const srcLabel = l.src==="official" ? t.official : t.aggregator;
+  const useLabel = t[USAGE_KEY[l.usage]];
+  return `<div class="lg-overlay" id="overlay"><aside class="lg-drawer" id="drawer">
+    <div class="lg-d-top"><button class="lg-close" id="closeBtn" aria-label="close">✕</button><a class="lg-cta-top" href="${l.url}" target="_blank" rel="noopener noreferrer">${t.goDownload} <span style="font-size:14px">↗</span></a></div>
+    <div class="lg-d-logo" style="--brand:${l.colors[0].h}">${logoMarkup(l,"drawer")}</div>
+    <div class="lg-d-head">
+      <span class="lg-d-chip">${esc(indLabel(l.ind))}</span>
+      <div class="lg-d-name"><h2 class="lg-d-ko">${esc(l.ko)}</h2><p class="lg-d-en">${esc(l.en)}</p></div>
+      <p class="lg-d-desc">${esc(l.desc)}${l.year?` · est. ${l.year}`:""}</p>
+    </div>
+    <div class="lg-d-section">
+      <p class="lg-d-label">${t.palette}</p>
+      <div class="lg-pal">${l.colors.map((c)=>`<button class="lg-pal-item" data-hex="${c.h}"><span class="lg-pal-sw" style="background:${c.h}"></span><span class="lg-pal-name">${esc(c.n)}</span><span class="lg-pal-hex">${c.h}</span></button>`).join("")}</div>
+    </div>
+    <div class="lg-d-section">
+      <p class="lg-d-label">${t.usage}</p>
+      <div class="lg-usebox">${srcLabel} ${useLabel}${l.note?`<br>${esc(l.note)}`:""}</div>
+    </div>
+    ${related.length?`<div class="lg-d-section"><p class="lg-d-label">${t.related}</p><div class="lg-rel"><div class="lg-rel-row">${related.map((r)=>`<button class="lg-rel-item" data-id="${r.id}" title="${esc(r.ko)}" style="--brand:${r.colors[0].h}">${logoMarkup(r,"rel")}</button>`).join("")}</div></div></div>`:""}
+  </aside></div>`;
+}
+function openDrawer(id){
+  state.active=byId(id);
+  const root=document.getElementById("drawerRoot");
+  root.innerHTML=drawerHTML(state.active);
+  document.getElementById("overlay").addEventListener("click",(e)=>{ if(e.target.id==="overlay") closeDrawer(); });
+  document.getElementById("closeBtn").addEventListener("click",closeDrawer);
+  root.querySelectorAll(".lg-pal-item").forEach((b)=>b.addEventListener("click",()=>copyText(b.dataset.hex)));
+  root.querySelectorAll(".lg-rel-item").forEach((b)=>b.addEventListener("click",()=>{ root.scrollTop=0; openDrawer(b.dataset.id); }));
+  document.getElementById("drawer").scrollTop=0;
+}
+function closeDrawer(){ state.active=null; document.getElementById("drawerRoot").innerHTML=""; }
+function copyText(text){
+  try{ navigator.clipboard && navigator.clipboard.writeText(text); }catch(e){}
+  const r=document.getElementById("toastRoot");
+  r.innerHTML=`<div class="lg-toast">${esc(text)} ${STR[state.lang].copied}</div>`;
+  setTimeout(()=>{ r.innerHTML=""; },1400);
+}
+
+function mount(){
+  const t=STR[state.lang];
+  document.getElementById("app").innerHTML=`
+  <header class="lg-gnb"><div class="lg-wrap lg-gnb-in">
+    <button class="lg-brand" id="brandBtn">${MARK}<span class="lg-logotype">LOGORY</span></button>
+    <div class="lg-gnb-right">
+      <div class="lg-tabs">
+        <button class="lg-tab ${state.lang==="ko"?"on":""}" id="langKo">KR</button>
+        <button class="lg-tab ${state.lang==="en"?"on":""}" id="langEn">EN</button>
+      </div>
+      <button class="lg-upload" id="uploadBtn"><span class="full">${t.upload}</span><span class="short">${t.uploadShort}</span></button>
+    </div>
+  </div></header>
+
+  <section class="lg-hero">
+    <h1 class="lg-hero-title">${t.title}</h1>
+    <div class="lg-search">
+      <svg class="lg-search-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2" stroke-linecap="round"/></svg>
+      <input id="searchInput" placeholder="${t.search}" value="${esc(state.q)}">
+      <button class="lg-search-clear" id="clearBtn" style="display:${state.q?"flex":"none"}" aria-label="clear">✕</button>
+    </div>
+    <div class="lg-filters">
+      <div class="lg-chiprow" id="chiprow">
+        <button class="lg-chip ${!state.ind?"on":""}" data-ind="">${t.all}</button>
+        ${INDUSTRIES.map((i)=>`<button class="lg-chip ${state.ind===i?"on":""}" data-ind="${esc(i)}">${esc(indLabel(i))}</button>`).join("")}
+      </div>
+      <div class="lg-colors" id="colors">
+        ${COLOR_CATS.map((c)=>`<button class="lg-color ${state.color===c.key?"on":""}" data-color="${c.key}" title="${state.lang==="ko"?c.ko:c.en}" style="--sw:${c.swatch}"><span class="lg-color-sw"></span></button>`).join("")}
+      </div>
+    </div>
+  </section>
+
+  <main class="lg-wrap lg-body">
+    <div class="lg-toolbar">
+      <span class="lg-count" id="count">${countHTML()}</span>
+      <div class="lg-sort">
+        <select id="sortSel">
+          <option value="popular" ${state.sort==="popular"?"selected":""}>${t.sortPopular}</option>
+          <option value="newest" ${state.sort==="newest"?"selected":""}>${t.sortNewest}</option>
+          <option value="name" ${state.sort==="name"?"selected":""}>${t.sortName}</option>
+        </select>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <div id="gridSection">${gridSection()}</div>
+    <p class="lg-seed">${t.seed}</p>
+  </main>
+
+  <footer class="lg-foot"><div class="lg-foot-in">
+    <div class="lg-foot-l">
+      <div class="lg-foot-brand">${MARK.replace('lg-mark','lg-mark').replace('currentColor','#ffffff')}<span class="lg-foot-logotype">LOGORY</span></div>
+      <span class="lg-foot-copy">©LOGORY. ALL RIGHTS RESERVED</span>
+    </div>
+    <div class="lg-foot-r">
+      <span class="lg-foot-note">${esc(t.rights).replace(/\n/g,"<br>")}</span>
+      <div class="lg-foot-links"><span>개인정보 처리방침</span><span>이용약관</span></div>
+    </div>
+  </div></footer>
+
+  <div id="drawerRoot"></div>
+  <div id="toastRoot"></div>`;
+  wire();
+  if(state.active) openDrawer(state.active.id);
+}
+
+function wire(){
+  document.getElementById("brandBtn").addEventListener("click",resetAll);
+  document.getElementById("langKo").addEventListener("click",()=>{ state.lang="ko"; mount(); });
+  document.getElementById("langEn").addEventListener("click",()=>{ state.lang="en"; mount(); });
+  const search=document.getElementById("searchInput");
+  search.addEventListener("input",(e)=>{ state.q=e.target.value; state.page=1; document.getElementById("clearBtn").style.display=state.q?"flex":"none"; refreshGrid(); });
+  document.getElementById("clearBtn").addEventListener("click",()=>{ state.q=""; search.value=""; state.page=1; document.getElementById("clearBtn").style.display="none"; search.focus(); refreshGrid(); });
+  document.getElementById("chiprow").addEventListener("click",(e)=>{ const b=e.target.closest(".lg-chip"); if(!b)return; if(b.dataset.ind===""){ state.ind=null; } else { const v=b.dataset.ind; state.ind=(state.ind===v)?null:v; } state.page=1; refreshChips(); refreshGrid(); });
+  document.getElementById("colors").addEventListener("click",(e)=>{ const b=e.target.closest(".lg-color"); if(!b)return; const v=b.dataset.color; state.color=(state.color===v)?null:v; state.page=1; refreshColors(); refreshGrid(); });
+  document.getElementById("sortSel").addEventListener("change",(e)=>{ state.sort=e.target.value; state.page=1; refreshGrid(); });
+  const gs=document.getElementById("gridSection");
+  gs.addEventListener("click",(e)=>{
+    const card=e.target.closest(".lg-card"); if(card){ openDrawer(card.dataset.id); return; }
+    const reset=e.target.closest("#resetBtn"); if(reset){ resetAll(); return; }
+    const pg=e.target.closest("[data-pg]"); if(pg){
+      const v=pg.dataset.pg; const total=Math.max(1,Math.ceil(filtered().length/PAGE_SIZE));
+      if(v==="prev") state.page=Math.max(1,state.page-1);
+      else if(v==="next") state.page=Math.min(total,state.page+1);
+      else state.page=+v;
+      refreshGrid(); window.scrollTo({top:document.querySelector(".lg-body").offsetTop-70,behavior:"smooth"});
+    }
+  });
+}
+function refreshChips(){ document.querySelectorAll("#chiprow .lg-chip").forEach((b)=>{ const v=b.dataset.ind||null; b.classList.toggle("on", state.ind===v || (!state.ind && v===null)); }); }
+function refreshColors(){ document.querySelectorAll("#colors .lg-color").forEach((b)=>b.classList.toggle("on", state.color===b.dataset.color)); }
+function resetAll(){ state.q=""; state.ind=null; state.color=null; state.page=1; const s=document.getElementById("searchInput"); if(s)s.value=""; const c=document.getElementById("clearBtn"); if(c)c.style.display="none"; refreshChips(); refreshColors(); refreshGrid(); }
+
+document.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && state.active) closeDrawer(); });
+mount();
+</script>
+</body>
+</html>
