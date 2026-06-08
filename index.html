@@ -607,7 +607,7 @@ function filtered(){
     return hay.includes(needle);                         // 그 외에는 이름 부분일치
   });
   arr.sort((a,b)=>{
-    if(state.sort==="popular") return b.pop-a.pop;
+    if(state.sort==="popular") return ((b.clicks||0)-(a.clicks||0)) || ((b.pop||0)-(a.pop||0));
     if(state.sort==="newest") return a.added<b.added?1:-1;
     return a.ko.localeCompare(b.ko,"ko");
   });
@@ -853,10 +853,9 @@ function shareSite(){
   try{ navigator.clipboard && navigator.clipboard.writeText(SHARE_URL); }catch(e){}
   toast(STR[state.lang].linkCopied);
 }
-const _clicked=new Set();
 function bumpClick(id){
-  if(!id || _clicked.has(id)) return;   // dedupe per page session
-  _clicked.add(id);
+  if(!id) return;
+  const o=byId(id); if(o) o.clicks=(o.clicks||0)+1;   // 로컬 즉시 반영 (인기순 정렬용)
   try{
     const headers={ "Content-Type":"application/json" };
     if(SUPABASE_ANON_KEY){ headers.apikey=SUPABASE_ANON_KEY; headers.Authorization="Bearer "+SUPABASE_ANON_KEY; }
@@ -974,7 +973,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 function rowToLogo(r){
   return { id:r.id, ko:r.ko, en:r.en, ind:r.ind, colorKey:(r.color_key==null?null:String(r.color_key).trim().toLowerCase()),
     colors:Array.isArray(r.colors)?r.colors:(r.colors?JSON.parse(r.colors):[]),
-    desc:r.description||"", year:r.year||undefined, pop:r.pop||0, added:r.added||"",
+    desc:r.description||"", year:r.year||undefined, pop:r.pop||0, clicks:r.clicks||0, added:r.added||"",
     url:r.url||"#", src:r.src||"aggregator", usage:r.usage||"guideline", note:r.note||undefined,
     file:r.file||undefined };
 }
