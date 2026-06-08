@@ -853,6 +853,16 @@ function shareSite(){
   try{ navigator.clipboard && navigator.clipboard.writeText(SHARE_URL); }catch(e){}
   toast(STR[state.lang].linkCopied);
 }
+const _clicked=new Set();
+function bumpClick(id){
+  if(!id || _clicked.has(id)) return;   // dedupe per page session
+  _clicked.add(id);
+  try{
+    const headers={ "Content-Type":"application/json" };
+    if(SUPABASE_ANON_KEY){ headers.apikey=SUPABASE_ANON_KEY; headers.Authorization="Bearer "+SUPABASE_ANON_KEY; }
+    fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_company_click`,{ method:"POST", headers, body:JSON.stringify({ cid:id }) });
+  }catch(e){}
+}
 function copyText(text){
   try{ navigator.clipboard && navigator.clipboard.writeText(text); }catch(e){}
   const r=document.getElementById("toastRoot");
@@ -903,7 +913,6 @@ function mount(){
       </div>
     </div>
     <div id="gridSection">${gridSection()}</div>
-    <p class="lg-seed">${t.seed}</p>
   </main>
 
   <footer class="lg-foot"><div class="lg-foot-in">
@@ -943,7 +952,7 @@ function wire(){
   document.getElementById("sortSel").addEventListener("change",(e)=>{ state.sort=e.target.value; state.page=1; refreshGrid(); });
   const gs=document.getElementById("gridSection");
   gs.addEventListener("click",(e)=>{
-    const card=e.target.closest(".lg-card"); if(card){ openDrawer(card.dataset.id); return; }
+    const card=e.target.closest(".lg-card"); if(card){ bumpClick(card.dataset.id); openDrawer(card.dataset.id); return; }
     const reset=e.target.closest("#resetBtn"); if(reset){ resetAll(); return; }
     const pg=e.target.closest("[data-pg]"); if(pg){
       const v=pg.dataset.pg; const total=Math.max(1,Math.ceil(filtered().length/PAGE_SIZE));
