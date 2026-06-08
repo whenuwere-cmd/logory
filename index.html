@@ -238,7 +238,7 @@ const COLOR_CATS = [
 const bf = (d) => `https://brandfetch.com/${d}`;
 
 /* ===== 데이터 ===== */
-const LOGOS = [
+const LOGOS_SEED = [
   { id:"naver", ko:"네이버", en:"NAVER", ind:"IT · 테크", colorKey:"green",
     colors:[{n:"Naver Green",h:"#03C75A"}], desc:"국내 1위 검색 포털", year:1999, pop:999, added:"2026-06-08", url:"https://www.navercorp.com/company/brandGuide", src:"official", usage:"guideline" },
   { id:"kakao", ko:"카카오", en:"KAKAO", ind:"IT · 테크", colorKey:"yellow",
@@ -476,6 +476,7 @@ const LOGOS = [
   { id:"paradise", ko:"파라다이스", en:"PARADISE", ind:"기타", colorKey:"black",
     colors:[{n:"Ink",h:"#1A1A1A"}], desc:"리조트·카지노", year:1972, pop:882, added:"2026-02-11", url:"https://brandfetch.com/paradise.co.kr", src:"aggregator", usage:"guideline" },
 ];
+let LOGOS = LOGOS_SEED.slice();
 const DOMAINS = {
   naver:"naver.com", kakao:"kakaocorp.com", line:"line.me", nhn:"nhn.com",
   daangn:"daangn.com", ohouse:"ohou.se", yanolja:"yanolja.com", goodchoice:"goodchoice.kr",
@@ -729,7 +730,34 @@ function refreshColors(){ document.querySelectorAll("#colors .lg-color").forEach
 function resetAll(){ state.q=""; state.ind=null; state.color=null; state.page=1; const s=document.getElementById("searchInput"); if(s)s.value=""; const c=document.getElementById("clearBtn"); if(c)c.style.display="none"; refreshChips(); refreshColors(); refreshGrid(); }
 
 document.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && state.active) closeDrawer(); });
+
+/* ===== Supabase에서 기업 데이터 로드 (실패 시 시드로 폴백) ===== */
+const SUPABASE_ANON_KEY = ""; // (선택) anon key 넣으면 더 안정적. 비워도 public read면 동작.
+function rowToLogo(r){
+  return { id:r.id, ko:r.ko, en:r.en, ind:r.ind, colorKey:r.color_key,
+    colors:Array.isArray(r.colors)?r.colors:(r.colors?JSON.parse(r.colors):[]),
+    desc:r.description||"", year:r.year||undefined, pop:r.pop||0, added:r.added||"",
+    url:r.url||"#", src:r.src||"aggregator", usage:r.usage||"guideline", note:r.note||undefined,
+    file:r.file||undefined };
+}
+async function loadCompanies(){
+  try{
+    const headers = { "Accept":"application/json" };
+    if(SUPABASE_ANON_KEY){ headers.apikey = SUPABASE_ANON_KEY; headers.Authorization = "Bearer "+SUPABASE_ANON_KEY; }
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/companies?select=*&order=pop.desc`, { headers });
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const rows = await res.json();
+    if(Array.isArray(rows) && rows.length){
+      LOGOS = rows.map(rowToLogo);
+      rows.forEach(r=>{ if(r.domain) DOMAINS[r.id]=r.domain; });
+      state.page=1; mount();
+    }
+  }catch(e){ /* 폴백: 시드 데이터 그대로 사용 */ }
+}
+
 mount();
+loadCompanies();
+
 </script>
 </body>
 </html>
