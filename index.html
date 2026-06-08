@@ -732,7 +732,7 @@ function resetAll(){ state.q=""; state.ind=null; state.color=null; state.page=1;
 document.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && state.active) closeDrawer(); });
 
 /* ===== Supabase에서 기업 데이터 로드 (실패 시 시드로 폴백) ===== */
-const SUPABASE_ANON_KEY = ""; // (선택) anon key 넣으면 더 안정적. 비워도 public read면 동작.
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZHZveXp6cHF1ZnlpYWV0dnh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTA4NzAsImV4cCI6MjA5NjQ2Njg3MH0.ij7Ok1enQKrxXxndv8CL8iu3WwXmlomsBL92lrzNz0c"; // (선택) anon key 넣으면 더 안정적. 비워도 public read면 동작.
 function rowToLogo(r){
   return { id:r.id, ko:r.ko, en:r.en, ind:r.ind, colorKey:r.color_key,
     colors:Array.isArray(r.colors)?r.colors:(r.colors?JSON.parse(r.colors):[]),
@@ -744,7 +744,7 @@ async function loadCompanies(){
   try{
     const headers = { "Accept":"application/json" };
     if(SUPABASE_ANON_KEY){ headers.apikey = SUPABASE_ANON_KEY; headers.Authorization = "Bearer "+SUPABASE_ANON_KEY; }
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/companies?select=*&order=pop.desc`, { headers });
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/companies?select=*&order=pop.desc&_=${Date.now()}`, { headers, cache: "no-store" });
     if(!res.ok) throw new Error("HTTP "+res.status);
     const rows = await res.json();
     if(Array.isArray(rows) && rows.length){
