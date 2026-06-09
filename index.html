@@ -749,12 +749,50 @@ function logoMarkup(logo, variant){
   const chain = sources(logo); SRC_CHAINS[logo.id]=chain;
   const cls = variant==="drawer" ? "lg-d-img" : (variant==="rel" ? "" : "lg-img");
   if(!chain.length) return `<span class="lg-wordmark">${esc(logo.en)}</span>`;
-  return `<img class="${cls}" src="${chain[0]}" alt="${esc(logo.en)}" loading="lazy" data-id="${logo.id}" data-idx="0" onerror="logoFail(this)">`;
+  return `<img class="${cls}" src="${chain[0]}" alt="${esc(logo.en)}" loading="lazy" data-id="${logo.id}" data-idx="0" onerror="logoFail(this)" onload="normalizeLogo(this)">`;
 }
 function logoFail(el){
   const chain = SRC_CHAINS[el.dataset.id]||[]; const i=(+el.dataset.idx)+1;
   if(chain[i]){ el.dataset.idx=i; el.src=chain[i]; return; }
   const span=document.createElement("span"); span.className="lg-wordmark"; span.textContent=el.alt; el.replaceWith(span);
+}
+/* 로고 여백 자동 트리밍: 빈 여백(투명·흰색)을 잘라내 모든 로고가 균일한 크기로 보이게 함 */
+const TRIM_CACHE = {};
+function normalizeLogo(el){
+  if(el.dataset.trimmed) return;                 // 이미 처리됨
+  const id=el.dataset.id; if(!id) return;
+  if(TRIM_CACHE[id]){ el.dataset.trimmed="1"; if(TRIM_CACHE[id]!=="x") el.src=TRIM_CACHE[id]; return; }
+  const url=el.currentSrc||el.src;
+  fetch(url,{cache:"force-cache"}).then(function(r){ if(!r.ok) throw 0; return r.blob(); }).then(function(blob){
+    return new Promise(function(res,rej){
+      const u=URL.createObjectURL(blob), im=new Image();
+      im.onload=function(){ try{
+        const w=im.naturalWidth, h=im.naturalHeight;
+        if(!w||!h){ URL.revokeObjectURL(u); return rej(0); }
+        const cv=document.createElement("canvas"); cv.width=w; cv.height=h;
+        const cx=cv.getContext("2d"); cx.drawImage(im,0,0); URL.revokeObjectURL(u);
+        const d=cx.getImageData(0,0,w,h).data;
+        const TH=245; let minX=w,minY=h,maxX=-1,maxY=-1;
+        for(let y=0;y<h;y++){ for(let x=0;x<w;x++){
+          const i=(y*w+x)*4;
+          if(d[i+3]>16 && !(d[i]>=TH&&d[i+1]>=TH&&d[i+2]>=TH)){  // 투명/흰색이 아닌 실제 내용
+            if(x<minX)minX=x; if(x>maxX)maxX=x; if(y<minY)minY=y; if(y>maxY)maxY=y;
+          }
+        }}
+        if(maxX<minX||maxY<minY) return rej(0);                  // 내용 없음
+        const pad=Math.round(Math.max(maxX-minX+1,maxY-minY+1)*0.04); // 살짝 여백
+        minX=Math.max(0,minX-pad); minY=Math.max(0,minY-pad);
+        maxX=Math.min(w-1,maxX+pad); maxY=Math.min(h-1,maxY+pad);
+        const cw=maxX-minX+1, ch=maxY-minY+1;
+        const out=document.createElement("canvas"); out.width=cw; out.height=ch;
+        out.getContext("2d").drawImage(cv, minX,minY,cw,ch, 0,0,cw,ch);
+        res(out.toDataURL("image/png"));
+      }catch(e){ try{URL.revokeObjectURL(u);}catch(_){ } rej(e); } };
+      im.onerror=function(){ URL.revokeObjectURL(u); rej(0); };
+      im.src=u;
+    });
+  }).then(function(data){ TRIM_CACHE[id]=data; el.dataset.trimmed="1"; el.src=data; })
+    .catch(function(){ TRIM_CACHE[id]="x"; el.dataset.trimmed="1"; });  // 실패 시 원본 유지
 }
 
 /* ===== 렌더 ===== */
