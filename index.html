@@ -297,6 +297,7 @@ const sources = (logo) => [
   logo.file ? storageFile(logo.file) : null,   // 파일명 직접 지정 시 우선
   storageFile(logo.id + ".svg"),               // logos 버킷의 {id}.svg
   storageFile(logo.id + ".png"),               // 또는 {id}.png
+  storageFile(logo.id + ".webp"),              // 또는 {id}.webp
   brandfetchUrl(DOMAINS[logo.id])              // 마지막으로 Brandfetch(키 설정 시)
 ].filter(Boolean);
 function svgUrlFor(l){
@@ -308,6 +309,11 @@ function pngUrlFor(l){
   if(l.img && /\.png(\?|$)/i.test(l.img)) return l.img;
   if(l.file && /\.png$/i.test(l.file)) return storageFile(l.file);
   return storageFile(l.id + ".png");
+}
+function webpUrlFor(l){
+  if(l.img && /\.webp(\?|$)/i.test(l.img)) return l.img;
+  if(l.file && /\.webp$/i.test(l.file)) return storageFile(l.file);
+  return storageFile(l.id + ".webp");
 }
 function svgAspect(svgText){
   // viewBox (작은따옴표/큰따옴표/소수/지수/콤마 모두 허용)
@@ -844,6 +850,12 @@ function openDrawer(id){
     if(pngU){
       fetch(pngU,{cache:"no-store"}).then(function(r){ if(!r.ok) throw 0; return r.blob(); }).then(function(blob){
         if(blob && blob.type.indexOf("image/")===0 && blob.type.indexOf("svg")===-1){ store.pngBlob=blob; showPng(); }
+      }).catch(function(){});
+    }
+    const webpU=webpUrlFor(l);
+    if(webpU){
+      fetch(webpU,{cache:"no-store"}).then(function(r){ if(!r.ok) throw 0; return r.blob(); }).then(function(blob){
+        if(blob && blob.type.indexOf("image/")===0 && blob.type.indexOf("svg")===-1){ if(!store.pngBlob) store.pngBlob=blob; showPng(); }
       }).catch(function(){});
     }
   })();
