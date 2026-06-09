@@ -158,12 +158,6 @@ button{font-family:inherit}
 .lg-d-desc{font-size:15px;font-weight:500;color:var(--ink-3);margin:0;line-height:1.6}
 .lg-d-section{display:flex;flex-direction:column;gap:8px}
 .lg-d-label{font-size:13px;font-weight:500;color:var(--ink);letter-spacing:-0.26px;margin:0}
-.lg-pal{background:var(--fill);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px}
-.lg-pal-item{display:flex;align-items:center;gap:16px;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;cursor:pointer;text-align:left;transition:.12s}
-.lg-pal-item:hover{border-color:#d3d1ca}
-.lg-pal-sw{width:24px;height:24px;border-radius:4px;box-shadow:inset 0 0 0 1px rgba(26,27,29,.1);flex:none}
-.lg-pal-name{font-size:16px;font-weight:600;color:var(--ink)}
-.lg-pal-hex{margin-left:auto;font-size:15px;color:var(--ink-3)}
 .lg-usebox{background:var(--fill);border:1px solid rgba(105,117,134,.08);border-radius:8px;padding:16px;font-size:13px;color:#4B5565;line-height:1.6;letter-spacing:-0.26px}
 .lg-d-disc{font-size:12px;color:var(--ink-3);line-height:1.7;background:var(--fill);border:1px solid rgba(105,117,134,.08);border-radius:8px;padding:14px 16px;margin-top:8px}
 .lg-cta{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:52px;background:var(--ink);color:#fff;border:0;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;text-decoration:none;transition:.15s}
@@ -413,7 +407,7 @@ const STR = {
     upload:"문의하기", uploadShort:"문의하기", goDownload:"기업 페이지로 이동",
     contactTitle:"문의하기", contactDesc:"로고 업로드 및 광고 문의는<br>메일을 보내주세요!", contactClose:"닫기", contactCopy:"메일 주소 복사",
     cmFab:"💬 할말있어요", cmTitle:"💬 할말있어요", cmSub:"추가했으면 하는 기업이나 개선 의견을 자유롭게 남겨주세요.", cmPlaceholder:"의견을 입력하세요 (예: OO 기업 추가해주세요!)", cmSend:"등록", cmEmpty:"아직 의견이 없어요. 첫 의견을 남겨보세요!", cmAsYou:"이름", cmPosted:"등록됐어요!", cmFail:"등록 실패. 잠시 후 다시 시도해주세요.",
-    palette:"공식 컬러", usage:"사용가이드", related:"관련 로고",
+    usage:"사용가이드", related:"관련 로고",
     official:"공식 브랜드 페이지", aggregator:"외부 제공 사이트",
     useFree:"자유 사용", useRestricted:"사용 제한 / 사전 승인", useGuideline:"가이드라인 준수",
     copied:"복사됨", share:"공유하기", linkCopied:"링크가 복사됐어요", copySvg:"SVG 복사", svgCopied:"SVG가 복사됐어요", copyPng:"PNG 복사", pngCopied:"PNG가 복사됐어요", copyFail:"복사 실패", usageDisc:"모든 로고와 상표의 저작권 및 권리는 해당 기업에 있습니다. 로고리는 정보 제공 목적의 비공식 아카이브로, 로고 사용으로 발생하는 어떠한 문제에 대해서도 법적 책임을 지지 않습니다. 사용 전 각 기업의 공식 가이드라인을 확인해 주세요.", seed:"샘플 데이터 · 링크는 출시 전 검증 필요",
@@ -424,7 +418,7 @@ const STR = {
     upload:"Contact", uploadShort:"Contact", goDownload:"Go to company page",
     contactTitle:"Contact", contactDesc:"For logo upload & ad inquiries,<br>please email us!", contactClose:"Close", contactCopy:"Copy email",
     cmFab:"💬 Say hi", cmTitle:"💬 Say hi", cmSub:"Suggest companies to add or share ideas.", cmPlaceholder:"Type your message (e.g. Please add OO!)", cmSend:"Post", cmEmpty:"No comments yet. Be the first!", cmAsYou:"Name", cmPosted:"Posted!", cmFail:"Failed. Please try again.",
-    palette:"Official colors", usage:"Usage", related:"Related",
+    usage:"Usage", related:"Related",
     official:"Official brand page", aggregator:"Third-party source",
     useFree:"Open use", useRestricted:"Restricted / approval", useGuideline:"Follow guideline",
     copied:"Copied", share:"Share", linkCopied:"Link copied!", copySvg:"Copy SVG", svgCopied:"SVG copied!", copyPng:"Copy PNG", pngCopied:"PNG copied!", copyFail:"Copy failed", usageDisc:"All logos and trademarks are the property of their respective owners. Logory is an unofficial archive provided for reference only and bears no legal responsibility for any use of these logos. Please review each company\u0027s official guidelines before use.", seed:"Sample data · verify links before launch",
@@ -887,10 +881,6 @@ function drawerHTML(l){
       <div class="lg-d-name"><h2 class="lg-d-ko">${esc(l.ko)}</h2><p class="lg-d-en">${esc(l.en)}</p></div>
       <p class="lg-d-desc">${esc(l.desc)}${l.year?` · est. ${l.year}`:""}</p>
     </div>
-    ${(l.colors && l.colors.length) ? `<div class="lg-d-section">
-      <p class="lg-d-label">${t.palette}</p>
-      <div class="lg-pal">${l.colors.map((c)=>`<button class="lg-pal-item" data-hex="${c.h}"><span class="lg-pal-sw" style="background:${c.h}"></span><span class="lg-pal-name">${esc(c.n)}</span><span class="lg-pal-hex">${c.h}</span></button>`).join("")}</div>
-    </div>` : ""}
     <div class="lg-d-section">
       <p class="lg-d-label">${t.usage}</p>
       <p class="lg-d-disc">${t.usageDisc}</p>
@@ -904,7 +894,6 @@ function openDrawer(id){
   root.innerHTML=drawerHTML(state.active);
   document.getElementById("overlay").addEventListener("click",(e)=>{ if(e.target.id==="overlay") closeDrawer(); });
   document.getElementById("closeBtn").addEventListener("click",closeDrawer);
-  root.querySelectorAll(".lg-pal-item").forEach((b)=>b.addEventListener("click",()=>copyText(b.dataset.hex)));
   root.querySelectorAll(".lg-rel-item").forEach((b)=>b.addEventListener("click",()=>{ root.scrollTop=0; openDrawer(b.dataset.id); }));
   // SVG / PNG 복사 버튼: 해당 형식이 실제로 있을 때만 노출
   (function(){
