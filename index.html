@@ -393,11 +393,14 @@ function rasterToTransparentPng(blob){
 }
 async function copyPng(store){
   try{
-    let png;
-    if(store.pngFromSvg){ png=store.pngFromSvg; }          // svg 유래 → 이미 투명
-    else if(store.pngBlob){ png=await rasterToTransparentPng(store.pngBlob); } // 래스터 → 흰배경 누끼
-    if(!png) throw 0;
-    await navigator.clipboard.write([new ClipboardItem({"image/png":png})]);
+    let item;
+    if(store.pngFromSvg){                 // svg 유래 → 이미 투명, 즉시
+      item=new ClipboardItem({"image/png":store.pngFromSvg});
+    } else if(store.pngBlob){             // 래스터 → 누끼 Promise를 그대로 전달(제스처 유지)
+      item=new ClipboardItem({"image/png":rasterToTransparentPng(store.pngBlob)});
+    }
+    if(!item) throw 0;
+    await navigator.clipboard.write([item]);
     toast(STR[state.lang].pngCopied);
   }catch(e){ toast(STR[state.lang].copyFail); }
 }
