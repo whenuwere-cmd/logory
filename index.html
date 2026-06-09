@@ -97,8 +97,9 @@ button{font-family:inherit}
 .lg-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin-bottom:24px}
 .lg-count{font-size:13px;color:var(--ink-3);letter-spacing:-0.26px}
 .lg-count b{color:var(--ink);font-weight:600}
-.lg-sort{display:flex;align-items:center;gap:6px;width:110px;height:38px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:0 12px;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer}
-.lg-sort select{flex:1;border:0;background:none;outline:0;font:inherit;color:inherit;cursor:pointer;-webkit-appearance:none;appearance:none}
+.lg-sort{position:relative;display:flex;align-items:center;width:110px;height:38px;background:var(--surface);border:1px solid var(--line);border-radius:8px;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer}
+.lg-sort select{width:100%;height:100%;border:0;background:none;outline:0;font:inherit;color:inherit;cursor:pointer;-webkit-appearance:none;appearance:none;padding:0 32px 0 12px}
+.lg-sort svg{position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--ink)}
 
 /* ===== Grid ===== */
 .lg-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
