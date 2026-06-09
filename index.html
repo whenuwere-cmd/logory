@@ -356,10 +356,46 @@ function rasterToPng(blob){
     im.src=u;
   });
 }
+/* 가장자리에서 시작하는 플러드필로 '흰 배경'만 투명 처리(로고 안쪽 흰색은 보존) */
+function rasterToTransparentPng(blob){
+  return new Promise(function(res,rej){
+    const u=URL.createObjectURL(blob); const im=new Image();
+    im.onload=function(){ try{
+      const w=im.naturalWidth||512, h=im.naturalHeight||512;
+      const c=document.createElement("canvas"); c.width=w; c.height=h;
+      const ctx=c.getContext("2d"); ctx.drawImage(im,0,0,w,h);
+      URL.revokeObjectURL(u);
+      const img=ctx.getImageData(0,0,w,h), px=img.data;
+      const TH=238; // 이 밝기 이상이면 흰 배경 후보(낮출수록 더 많이 제거)
+      const isBg=function(i){ return px[i+3]>10 && px[i]>=TH && px[i+1]>=TH && px[i+2]>=TH; };
+      const visited=new Uint8Array(w*h);
+      const stack=[];
+      for(let x=0;x<w;x++){ stack.push(x); stack.push((h-1)*w+x); }
+      for(let y=0;y<h;y++){ stack.push(y*w); stack.push(y*w+(w-1)); }
+      while(stack.length){
+        const p=stack.pop();
+        if(visited[p]) continue; visited[p]=1;
+        const i=p*4;
+        if(!isBg(i)) continue;     // 흰색 아니면 경계 → 확장 중단(안쪽 보존)
+        px[i+3]=0;                 // 투명
+        const x=p%w, y=(p/w)|0;
+        if(x>0) stack.push(p-1);
+        if(x<w-1) stack.push(p+1);
+        if(y>0) stack.push(p-w);
+        if(y<h-1) stack.push(p+w);
+      }
+      ctx.putImageData(img,0,0);
+      c.toBlob(function(b){ b?res(b):rej(0); },"image/png");
+    }catch(e){ try{URL.revokeObjectURL(u);}catch(_){ } rej(e); } };
+    im.onerror=function(){ URL.revokeObjectURL(u); rej(0); };
+    im.src=u;
+  });
+}
 async function copyPng(store){
   try{
-    let png=store.pngBlob||store.pngFromSvg;
-    if(png && png.type!=="image/png"){ png=await rasterToPng(png); }
+    let png;
+    if(store.pngFromSvg){ png=store.pngFromSvg; }          // svg 유래 → 이미 투명
+    else if(store.pngBlob){ png=await rasterToTransparentPng(store.pngBlob); } // 래스터 → 흰배경 누끼
     if(!png) throw 0;
     await navigator.clipboard.write([new ClipboardItem({"image/png":png})]);
     toast(STR[state.lang].pngCopied);
