@@ -298,6 +298,8 @@ const sources = (logo) => [
   storageFile(logo.id + ".svg"),               // logos 버킷의 {id}.svg
   storageFile(logo.id + ".png"),               // 또는 {id}.png
   storageFile(logo.id + ".webp"),              // 또는 {id}.webp
+  storageFile(logo.id + ".jpg"),               // 또는 {id}.jpg
+  storageFile(logo.id + ".jpeg"),              // 또는 {id}.jpeg
   brandfetchUrl(DOMAINS[logo.id])              // 마지막으로 Brandfetch(키 설정 시)
 ].filter(Boolean);
 function svgUrlFor(l){
@@ -858,6 +860,17 @@ function openDrawer(id){
         if(blob && blob.type.indexOf("image/")===0 && blob.type.indexOf("svg")===-1){ if(!store.pngBlob) store.pngBlob=blob; showPng(); }
       }).catch(function(){});
     }
+    const jpgCandidates=[
+      (l.img && /\.jpe?g(\?|$)/i.test(l.img)) ? l.img : null,
+      (l.file && /\.jpe?g$/i.test(l.file)) ? storageFile(l.file) : null,
+      storageFile(l.id + ".jpg"),
+      storageFile(l.id + ".jpeg")
+    ].filter(Boolean);
+    jpgCandidates.forEach(function(u){
+      fetch(u,{cache:"no-store"}).then(function(r){ if(!r.ok) throw 0; return r.blob(); }).then(function(blob){
+        if(blob && blob.type.indexOf("image/")===0 && blob.type.indexOf("svg")===-1){ if(!store.pngBlob) store.pngBlob=blob; showPng(); }
+      }).catch(function(){});
+    });
   })();
   document.getElementById("drawer").scrollTop=0;
 }
