@@ -291,7 +291,7 @@ const brandfetchUrl = (dom) => dom && BRANDFETCH_CLIENT_ID
 const isStorageReady = SUPABASE_URL.includes(".supabase.co") && !SUPABASE_URL.includes("YOUR_PROJECT");
 const storageFile = (name) => isStorageReady ? `${SUPABASE_URL}/storage/v1/object/public/${LOGO_BUCKET}/${name}` : null;
 const SITE_VER = "1";  // 배포 시 올리면 전체 이미지 캐시 강제 갱신
-function verOf(l){ const t=(l && l.updated_at)?String(l.updated_at).replace(/\D/g,""):""; return "?v="+SITE_VER+(t?("-"+t):""); }
+function verOf(l){ const t=(l && l.logo_updated_at)?String(l.logo_updated_at).replace(/\D/g,""):""; return "?v="+SITE_VER+(t?("-"+t):""); }
 function sfv(name, l){ const u=storageFile(name); return u ? u+verOf(l) : null; }
 const storageUrl = (logo) => storageFile(logo.file || (logo.id + "." + DEFAULT_EXT));
 const sources = (logo) => [
@@ -1230,7 +1230,7 @@ function rowToLogo(r){
     colors:Array.isArray(r.colors)?r.colors:(r.colors?JSON.parse(r.colors):[]),
     desc:r.description||"", year:r.year||undefined, pop:r.pop||0, clicks:r.clicks||0, added:r.added||"",
     url:r.url||"#", src:r.src||"aggregator", usage:r.usage||"guideline", note:r.note||undefined,
-    file:r.file||undefined, updated_at:r.updated_at||r.updatedAt||null };
+    file:r.file||undefined, updated_at:r.updated_at||null, logo_updated_at:r.logo_updated_at||null };
 }
 async function loadCompanies(){
   try{
