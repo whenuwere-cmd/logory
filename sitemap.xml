@@ -1,9 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
   <url>
     <loc>https://logory.pages.dev/</loc>
-    <lastmod>2026-06-08</lastmod>
-    <changefreq>weekly</changefreq>
+    <lastmod>2026-06-11</lastmod>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
+
+  <!--
+    ⚠️ 회사/카테고리 개별 페이지를 색인시키려면 각각 고유 URL이 있어야 함.
+    중요: 해시(#samsung) 라우팅이면 검색엔진이 별도 페이지로 절대 안 봄.
+          반드시 쿼리(?id=samsung) 또는 경로(/c/samsung) 형식이어야 색인됨.
+
+    실제 URL 형식 확인한 뒤 아래처럼 추가 (예시):
+
+    <url><loc>https://logory.pages.dev/?ind=it</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+    <url><loc>https://logory.pages.dev/?id=samsung</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+    회사가 200개 넘으니 손으로 안 만들고, 같이 준 generate-sitemap 스니펫으로 자동 생성하면 됨.
+  -->
+
 </urlset>
