@@ -290,31 +290,34 @@ const brandfetchUrl = (dom) => dom && BRANDFETCH_CLIENT_ID
   ? `https://cdn.brandfetch.io/${dom}/w/400/h/120/logo?c=${BRANDFETCH_CLIENT_ID}` : null;
 const isStorageReady = SUPABASE_URL.includes(".supabase.co") && !SUPABASE_URL.includes("YOUR_PROJECT");
 const storageFile = (name) => isStorageReady ? `${SUPABASE_URL}/storage/v1/object/public/${LOGO_BUCKET}/${name}` : null;
+const SITE_VER = "1";  // 배포 시 올리면 전체 이미지 캐시 강제 갱신
+function verOf(l){ const t=(l && l.updated_at)?String(l.updated_at).replace(/\D/g,""):""; return "?v="+SITE_VER+(t?("-"+t):""); }
+function sfv(name, l){ const u=storageFile(name); return u ? u+verOf(l) : null; }
 const storageUrl = (logo) => storageFile(logo.file || (logo.id + "." + DEFAULT_EXT));
 const sources = (logo) => [
   logo.img,
-  logo.file ? storageFile(logo.file) : null,   // 파일명 직접 지정 시 우선
-  storageFile(logo.id + ".svg"),               // logos 버킷의 {id}.svg
-  storageFile(logo.id + ".png"),               // 또는 {id}.png
-  storageFile(logo.id + ".webp"),              // 또는 {id}.webp
-  storageFile(logo.id + ".jpg"),               // 또는 {id}.jpg
-  storageFile(logo.id + ".jpeg"),              // 또는 {id}.jpeg
+  logo.file ? sfv(logo.file, logo) : null,     // 파일명 직접 지정 시 우선
+  sfv(logo.id + ".svg", logo),                 // logos 버킷의 {id}.svg
+  sfv(logo.id + ".png", logo),                 // 또는 {id}.png
+  sfv(logo.id + ".webp", logo),                // 또는 {id}.webp
+  sfv(logo.id + ".jpg", logo),                 // 또는 {id}.jpg
+  sfv(logo.id + ".jpeg", logo),                // 또는 {id}.jpeg
   brandfetchUrl(DOMAINS[logo.id])              // 마지막으로 Brandfetch(키 설정 시)
 ].filter(Boolean);
 function svgUrlFor(l){
   if(l.img && /\.svg(\?|$)/i.test(l.img)) return l.img;
-  if(l.file && /\.svg$/i.test(l.file)) return storageFile(l.file);
-  return storageFile(l.id + ".svg");
+  if(l.file && /\.svg$/i.test(l.file)) return sfv(l.file, l);
+  return sfv(l.id + ".svg", l);
 }
 function pngUrlFor(l){
   if(l.img && /\.png(\?|$)/i.test(l.img)) return l.img;
-  if(l.file && /\.png$/i.test(l.file)) return storageFile(l.file);
-  return storageFile(l.id + ".png");
+  if(l.file && /\.png$/i.test(l.file)) return sfv(l.file, l);
+  return sfv(l.id + ".png", l);
 }
 function webpUrlFor(l){
   if(l.img && /\.webp(\?|$)/i.test(l.img)) return l.img;
-  if(l.file && /\.webp$/i.test(l.file)) return storageFile(l.file);
-  return storageFile(l.id + ".webp");
+  if(l.file && /\.webp$/i.test(l.file)) return sfv(l.file, l);
+  return sfv(l.id + ".webp", l);
 }
 function svgAspect(svgText){
   // viewBox (작은따옴표/큰따옴표/소수/지수/콤마 모두 허용)
@@ -977,9 +980,9 @@ function openDrawer(id){
     }
     const jpgCandidates=[
       (l.img && /\.jpe?g(\?|$)/i.test(l.img)) ? l.img : null,
-      (l.file && /\.jpe?g$/i.test(l.file)) ? storageFile(l.file) : null,
-      storageFile(l.id + ".jpg"),
-      storageFile(l.id + ".jpeg")
+      (l.file && /\.jpe?g$/i.test(l.file)) ? sfv(l.file, l) : null,
+      sfv(l.id + ".jpg", l),
+      sfv(l.id + ".jpeg", l)
     ].filter(Boolean);
     jpgCandidates.forEach(function(u){
       fetch(u,{cache:"no-store"}).then(function(r){ if(!r.ok) throw 0; return r.blob(); }).then(function(blob){
@@ -1227,7 +1230,7 @@ function rowToLogo(r){
     colors:Array.isArray(r.colors)?r.colors:(r.colors?JSON.parse(r.colors):[]),
     desc:r.description||"", year:r.year||undefined, pop:r.pop||0, clicks:r.clicks||0, added:r.added||"",
     url:r.url||"#", src:r.src||"aggregator", usage:r.usage||"guideline", note:r.note||undefined,
-    file:r.file||undefined };
+    file:r.file||undefined, updated_at:r.updated_at||r.updatedAt||null };
 }
 async function loadCompanies(){
   try{
