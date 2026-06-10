@@ -161,6 +161,10 @@ button{font-family:inherit}
 .lg-d-label{font-size:13px;font-weight:500;color:var(--ink);letter-spacing:-0.26px;margin:0}
 .lg-usebox{background:var(--fill);border:1px solid rgba(105,117,134,.08);border-radius:8px;padding:16px;font-size:13px;color:#4B5565;line-height:1.6;letter-spacing:-0.26px}
 .lg-d-disc{font-size:12px;color:var(--ink-3);line-height:1.7;background:var(--fill);border:1px solid rgba(105,117,134,.08);border-radius:8px;padding:14px 16px;margin-top:8px}
+.lg-copyrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+#copySvgBtn,#copyPngBtn{border-color:#1F2937}
+.lg-copy-btn{display:inline-flex;align-items:center;justify-content:center;height:42px;padding:0 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font-size:14px;font-weight:600;cursor:pointer;transition:.12s}
+.lg-copy-btn:hover{background:#F9FAFB;transform:translateY(-1px)}
 .lg-cta{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:52px;background:var(--ink);color:#fff;border:0;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;text-decoration:none;transition:.15s}
 .lg-cta:hover{filter:brightness(1.1)}
 .lg-cta-top{display:inline-flex;align-items:center;gap:4px;height:38px;padding:0 12px;background:var(--ink);color:#fff;border:0;border-radius:12px;font-size:13px;font-weight:500;letter-spacing:-0.26px;cursor:pointer;text-decoration:none;transition:.16s ease;white-space:nowrap}
@@ -399,6 +403,34 @@ async function copyPng(store){
     toast(STR[state.lang].pngCopied);
   }catch(e){ toast(STR[state.lang].copyFail); }
 }
+function recolor(blob, color){
+  // 불투명 영역만 단색(흰/검)으로 변환, 알파 유지
+  return new Promise(function(res,rej){
+    const u=URL.createObjectURL(blob); const im=new Image();
+    im.onload=function(){ try{
+      const w=im.naturalWidth||512, h=im.naturalHeight||512;
+      const c=document.createElement("canvas"); c.width=w; c.height=h;
+      const ctx=c.getContext("2d"); ctx.drawImage(im,0,0,w,h);
+      ctx.globalCompositeOperation="source-in"; ctx.fillStyle=color; ctx.fillRect(0,0,w,h);
+      URL.revokeObjectURL(u);
+      c.toBlob(function(b){ b?res(b):rej(0); },"image/png");
+    }catch(e){ try{URL.revokeObjectURL(u);}catch(_){ } rej(e); } };
+    im.onerror=function(){ URL.revokeObjectURL(u); rej(0); };
+    im.src=u;
+  });
+}
+function monoBlob(store, color){
+  const base = store.pngFromSvg ? Promise.resolve(store.pngFromSvg) : rasterToTransparentPng(store.pngBlob);
+  return base.then(function(b){ return recolor(b, color); });
+}
+async function copyMono(store, color){
+  try{
+    if(!(store.pngFromSvg||store.pngBlob)) throw 0;
+    const item=new ClipboardItem({"image/png": monoBlob(store, color)});  // Promise 전달(제스처 유지)
+    await navigator.clipboard.write([item]);
+    toast(color.toLowerCase()==="#ffffff" ? STR[state.lang].whiteCopied : STR[state.lang].blackCopied);
+  }catch(e){ toast(STR[state.lang].copyFail); }
+}
 
 /* ===== 다국어 ===== */
 const STR = {
@@ -411,7 +443,7 @@ const STR = {
     usage:"사용가이드", related:"관련 로고",
     official:"공식 브랜드 페이지", aggregator:"외부 제공 사이트",
     useFree:"자유 사용", useRestricted:"사용 제한 / 사전 승인", useGuideline:"가이드라인 준수",
-    copied:"복사됨", share:"공유하기", linkCopied:"링크가 복사됐어요", copySvg:"SVG 복사", svgCopied:"SVG가 복사됐어요", copyPng:"PNG 복사", pngCopied:"PNG가 복사됐어요", copyFail:"복사 실패", usageDisc:"모든 로고와 상표의 저작권 및 권리는 해당 기업에 있습니다. 로고리는 정보 제공 목적의 비공식 아카이브로, 로고 사용으로 발생하는 어떠한 문제에 대해서도 법적 책임을 지지 않습니다. 사용 전 각 기업의 공식 가이드라인을 확인해 주세요.", seed:"샘플 데이터 · 링크는 출시 전 검증 필요",
+    copied:"복사됨", share:"공유하기", linkCopied:"링크가 복사됐어요", copySvg:"SVG 복사", svgCopied:"SVG가 복사됐어요", copyPng:"PNG 복사", pngCopied:"PNG가 복사됐어요", copyFail:"복사 실패", copyLabel:"로고 복사", copyWhite:"화이트 PNG 복사", copyBlack:"블랙 PNG 복사", whiteCopied:"화이트 PNG가 복사됐어요", blackCopied:"블랙 PNG가 복사됐어요", usageDisc:"모든 로고와 상표의 저작권 및 권리는 해당 기업에 있습니다. 로고리는 정보 제공 목적의 비공식 아카이브로, 로고 사용으로 발생하는 어떠한 문제에 대해서도 법적 책임을 지지 않습니다. 사용 전 각 기업의 공식 가이드라인을 확인해 주세요. 또한 화이트·블랙 버전 로고는 로고리가 임의로 변환해 제공하는 것이라 실제 브랜드 가이드와 다를 수 있으니, 사용 전 반드시 확인해 주세요.", seed:"샘플 데이터 · 링크는 출시 전 검증 필요",
     rights:"모든 로고의 저작권은 모두 각 로고의 저작권자에게 있습니다.\n로고 사용에 대한 라이센스 문의는 저작권자에게 문의해주세요." },
   en: { title:"A new logo library 🍞", search:"Search by company (e.g. Toss, naver)", all:"All",
     sortPopular:"Popular", sortNewest:"Newest", sortName:"Name", count:(n)=>`${n} logos`,
@@ -422,7 +454,7 @@ const STR = {
     usage:"Usage", related:"Related",
     official:"Official brand page", aggregator:"Third-party source",
     useFree:"Open use", useRestricted:"Restricted / approval", useGuideline:"Follow guideline",
-    copied:"Copied", share:"Share", linkCopied:"Link copied!", copySvg:"Copy SVG", svgCopied:"SVG copied!", copyPng:"Copy PNG", pngCopied:"PNG copied!", copyFail:"Copy failed", usageDisc:"All logos and trademarks are the property of their respective owners. Logory is an unofficial archive provided for reference only and bears no legal responsibility for any use of these logos. Please review each company\u0027s official guidelines before use.", seed:"Sample data · verify links before launch",
+    copied:"Copied", share:"Share", linkCopied:"Link copied!", copySvg:"Copy SVG", svgCopied:"SVG copied!", copyPng:"Copy PNG", pngCopied:"PNG copied!", copyFail:"Copy failed", copyLabel:"Copy logo", copyWhite:"Copy white PNG", copyBlack:"Copy black PNG", whiteCopied:"White PNG copied!", blackCopied:"Black PNG copied!", usageDisc:"All logos and trademarks are the property of their respective owners. Logory is an unofficial archive provided for reference only and bears no legal responsibility for any use of these logos. Please review each company\u0027s official guidelines before use. White and black versions are auto-generated by Logory and may differ from the official brand guidelines, so please verify before use.", seed:"Sample data · verify links before launch",
     rights:"All logo copyrights belong to their respective owners.\nFor licensing, please contact the copyright holder." },
 };
 const USAGE_KEY = { free:"useFree", restricted:"useRestricted", guideline:"useGuideline" };
@@ -875,12 +907,21 @@ function drawerHTML(l){
   const srcLabel = l.src==="official" ? t.official : t.aggregator;
   const useLabel = t[USAGE_KEY[l.usage]];
   return `<div class="lg-overlay" id="overlay"><aside class="lg-drawer" id="drawer">
-    <div class="lg-d-top"><button class="lg-close" id="closeBtn" aria-label="close">✕</button><div class="lg-d-actions"><button class="lg-cta-top lg-cta-ghost" id="copySvgBtn" style="display:none">${t.copySvg}</button><button class="lg-cta-top lg-cta-ghost" id="copyPngBtn" style="display:none">${t.copyPng}</button><a class="lg-cta-top" href="${l.url}" target="_blank" rel="noopener noreferrer">${t.goDownload} <span style="font-size:14px">↗</span></a></div></div>
+    <div class="lg-d-top"><button class="lg-close" id="closeBtn" aria-label="close">✕</button><a class="lg-cta-top" href="${l.url}" target="_blank" rel="noopener noreferrer">${t.goDownload} <span style="font-size:14px">↗</span></a></div>
     <div class="lg-d-logo" style="--brand:${brandOf(l)}">${logoMarkup(l,"drawer")}</div>
     <div class="lg-d-head">
       <span class="lg-d-chip">${esc(indLabel(l.ind))}</span>
       <div class="lg-d-name"><h2 class="lg-d-ko">${esc(l.ko)}</h2><p class="lg-d-en">${esc(l.en)}</p></div>
       <p class="lg-d-desc">${esc(l.desc)}${l.year?` · est. ${l.year}`:""}</p>
+    </div>
+    <div class="lg-d-section" id="copySection" style="display:none">
+      <p class="lg-d-label">${t.copyLabel}</p>
+      <div class="lg-copyrow">
+        <button class="lg-copy-btn" id="copySvgBtn" style="display:none">${t.copySvg}</button>
+        <button class="lg-copy-btn" id="copyPngBtn" style="display:none">${t.copyPng}</button>
+        <button class="lg-copy-btn" id="copyWhiteBtn" style="display:none">${t.copyWhite}</button>
+        <button class="lg-copy-btn" id="copyBlackBtn" style="display:none">${t.copyBlack}</button>
+      </div>
     </div>
     <div class="lg-d-section">
       <p class="lg-d-label">${t.usage}</p>
@@ -904,27 +945,34 @@ function openDrawer(id){
     if(svgBtn) svgBtn.style.display="none";
     if(pngBtn) pngBtn.style.display="none";
     const store={svg:null, pngBlob:null, pngFromSvg:null};
-    const showPng=function(){ if(pngBtn && (store.pngBlob||store.pngFromSvg)){ pngBtn.style.display=""; pngBtn.onclick=function(){ copyPng(store); }; } };
+    const reveal=function(){
+      const raster=!!(store.pngFromSvg||store.pngBlob);
+      if(svgBtn && store.svg){ svgBtn.style.display=""; svgBtn.onclick=function(){ try{ navigator.clipboard && navigator.clipboard.writeText(store.svg); }catch(e){} toast(STR[state.lang].svgCopied); }; }
+      if(pngBtn && raster){ pngBtn.style.display=""; pngBtn.onclick=function(){ copyPng(store); }; }
+      const wb=document.getElementById("copyWhiteBtn"), bb=document.getElementById("copyBlackBtn");
+      if(wb && raster){ wb.style.display=""; wb.onclick=function(){ copyMono(store,"#ffffff"); }; }
+      if(bb && raster){ bb.style.display=""; bb.onclick=function(){ copyMono(store,"#000000"); }; }
+      const cs=document.getElementById("copySection"); if(cs && (store.svg||raster)) cs.style.display="";
+    };
     const svgU=svgUrlFor(l);
     if(svgU){
       fetch(svgU,{cache:"no-store"}).then(function(r){ if(!r.ok) throw 0; return r.text(); }).then(function(txt){
         if(txt && txt.indexOf("<svg")!==-1){
-          store.svg=txt;
-          if(svgBtn){ svgBtn.style.display=""; svgBtn.onclick=function(){ try{ navigator.clipboard && navigator.clipboard.writeText(store.svg); }catch(e){} toast(STR[state.lang].svgCopied); }; }
-          svgTextToPng(txt).then(function(b){ store.pngFromSvg=b; showPng(); }).catch(function(){});
+          store.svg=txt; reveal();
+          svgTextToPng(txt).then(function(b){ store.pngFromSvg=b; reveal(); }).catch(function(){});
         }
       }).catch(function(){});
     }
     const pngU=pngUrlFor(l);
     if(pngU){
       fetch(pngU,{cache:"no-store"}).then(function(r){ if(!r.ok) throw 0; return r.blob(); }).then(function(blob){
-        if(blob && blob.type.indexOf("image/")===0 && blob.type.indexOf("svg")===-1){ store.pngBlob=blob; showPng(); }
+        if(blob && blob.type.indexOf("image/")===0 && blob.type.indexOf("svg")===-1){ store.pngBlob=blob; reveal(); }
       }).catch(function(){});
     }
     const webpU=webpUrlFor(l);
     if(webpU){
       fetch(webpU,{cache:"no-store"}).then(function(r){ if(!r.ok) throw 0; return r.blob(); }).then(function(blob){
-        if(blob && blob.type.indexOf("image/")===0 && blob.type.indexOf("svg")===-1){ if(!store.pngBlob) store.pngBlob=blob; showPng(); }
+        if(blob && blob.type.indexOf("image/")===0 && blob.type.indexOf("svg")===-1){ if(!store.pngBlob) store.pngBlob=blob; reveal(); }
       }).catch(function(){});
     }
     const jpgCandidates=[
@@ -935,7 +983,7 @@ function openDrawer(id){
     ].filter(Boolean);
     jpgCandidates.forEach(function(u){
       fetch(u,{cache:"no-store"}).then(function(r){ if(!r.ok) throw 0; return r.blob(); }).then(function(blob){
-        if(blob && blob.type.indexOf("image/")===0 && blob.type.indexOf("svg")===-1){ if(!store.pngBlob) store.pngBlob=blob; showPng(); }
+        if(blob && blob.type.indexOf("image/")===0 && blob.type.indexOf("svg")===-1){ if(!store.pngBlob) store.pngBlob=blob; reveal(); }
       }).catch(function(){});
     });
   })();
