@@ -419,13 +419,43 @@ function rasterToTransparentPng(blob){
     im.src=u;
   });
 }
+/* 복사용 정규화: 투명 여백을 잘라내고 동일한 정사각 캔버스 중앙에 일정 비율로 배치
+   → 어떤 로고를 복사해도 결과 크기가 SIZE×SIZE 로 항상 동일 (여백/비율 통일) */
+function fitToCanvas(src, size, fill){
+  size = size || 1024; fill = fill || 0.86;
+  return Promise.resolve(src).then(function(blob){
+    return new Promise(function(res,rej){
+      const u=URL.createObjectURL(blob), im=new Image();
+      im.onload=function(){ try{
+        const w=im.naturalWidth||512, h=im.naturalHeight||512;
+        const t=document.createElement("canvas"); t.width=w; t.height=h;
+        const tx=t.getContext("2d"); tx.drawImage(im,0,0); URL.revokeObjectURL(u);
+        const d=tx.getImageData(0,0,w,h).data;
+        let minX=w,minY=h,maxX=-1,maxY=-1;            // 불투명 픽셀 경계 = 실제 로고 영역
+        for(let y=0;y<h;y++){ for(let x=0;x<w;x++){
+          if(d[(y*w+x)*4+3]>16){ if(x<minX)minX=x; if(x>maxX)maxX=x; if(y<minY)minY=y; if(y>maxY)maxY=y; }
+        }}
+        if(maxX<minX||maxY<minY){ minX=0;minY=0;maxX=w-1;maxY=h-1; }  // 내용 못 찾으면 통째로
+        const cw=maxX-minX+1, ch=maxY-minY+1;
+        const box=size*fill, s=Math.min(box/cw, box/ch);   // 비율 유지하며 박스 안에 맞춤
+        const dw=Math.max(1,Math.round(cw*s)), dh=Math.max(1,Math.round(ch*s));
+        const out=document.createElement("canvas"); out.width=size; out.height=size;
+        const ox=Math.round((size-dw)/2), oy=Math.round((size-dh)/2);   // 가운데 정렬
+        out.getContext("2d").drawImage(t, minX,minY,cw,ch, ox,oy,dw,dh);
+        out.toBlob(function(b){ b?res(b):rej(0); },"image/png");
+      }catch(e){ try{URL.revokeObjectURL(u);}catch(_){ } rej(e); } };
+      im.onerror=function(){ try{URL.revokeObjectURL(u);}catch(_){ } rej(0); };
+      im.src=u;
+    });
+  });
+}
 async function copyPng(store){
   try{
     let item;
-    if(store.pngFromSvg){                 // svg 유래 → 이미 투명, 즉시
-      item=new ClipboardItem({"image/png":store.pngFromSvg});
-    } else if(store.pngBlob){             // 래스터 → 누끼 Promise를 그대로 전달(제스처 유지)
-      item=new ClipboardItem({"image/png":rasterToTransparentPng(store.pngBlob)});
+    if(store.pngFromSvg){                 // svg 유래 → 투명, 크기 정규화 후 복사
+      item=new ClipboardItem({"image/png":fitToCanvas(store.pngFromSvg)});
+    } else if(store.pngBlob){             // 래스터 → 누끼 + 크기 정규화 Promise 전달(제스처 유지)
+      item=new ClipboardItem({"image/png":fitToCanvas(rasterToTransparentPng(store.pngBlob))});
     }
     if(!item) throw 0;
     await navigator.clipboard.write([item]);
@@ -450,7 +480,7 @@ function recolor(blob, color){
 }
 function monoBlob(store, color){
   const base = store.pngFromSvg ? Promise.resolve(store.pngFromSvg) : rasterToTransparentPng(store.pngBlob);
-  return base.then(function(b){ return recolor(b, color); });
+  return base.then(function(b){ return recolor(b, color); }).then(function(b){ return fitToCanvas(b); });
 }
 async function copyMono(store, color){
   try{
@@ -1136,7 +1166,7 @@ function shareSite(){
 }
 function bumpClick(id){
   if(!id) return;
-  const o=byId(id); if(o) o.clicks=(o.clicks||0)+1;   // 로컬 즉시 반영 (인기순 정렬용)
+  const o=byId(id); if(o) o.clicks=(Number(o.clicks)||0)+1;   // 로컬 즉시 반영 (인기순 정렬용)
   try{
     const headers={ "Content-Type":"application/json" };
     if(SUPABASE_ANON_KEY){ headers.apikey=SUPABASE_ANON_KEY; headers.Authorization="Bearer "+SUPABASE_ANON_KEY; }
@@ -1254,7 +1284,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 function rowToLogo(r){
   return { id:r.id, ko:r.ko, en:r.en, ind:r.ind, colorKey:(r.color_key==null?null:String(r.color_key).trim().toLowerCase()),
     colors:Array.isArray(r.colors)?r.colors:(r.colors?JSON.parse(r.colors):[]),
-    desc:r.description||"", year:r.year||undefined, pop:r.pop||0, clicks:r.clicks||0, added:r.added||"",
+    desc:r.description||"", year:r.year||undefined, pop:Number(r.pop)||0, clicks:Number(r.clicks)||0, added:r.added||"",
     url:r.url||"#", src:r.src||"aggregator", usage:r.usage||"guideline", note:r.note||undefined,
     file:r.file||undefined, updated_at:r.updated_at||null, logo_updated_at:r.logo_updated_at||null };
 }
