@@ -422,7 +422,7 @@ function rasterToTransparentPng(blob){
 /* 복사용 정규화: 투명 여백을 잘라내고 동일한 정사각 캔버스 중앙에 일정 비율로 배치
    → 어떤 로고를 복사해도 결과 크기가 SIZE×SIZE 로 항상 동일 (여백/비율 통일) */
 function fitToCanvas(src, size, fill){
-  size = size || 1024; fill = fill || 0.86;
+  size = size || 1024; fill = fill || 0.80;
   return Promise.resolve(src).then(function(blob){
     return new Promise(function(res,rej){
       const u=URL.createObjectURL(blob), im=new Image();
